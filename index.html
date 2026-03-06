@@ -557,9 +557,53 @@
             }
             
             saveSheet(currentParty.id, currentDesign.id, sheet);
+            
+            // Auto-sync to REGISTER
+            autoSyncToRegister(currentParty.id, currentDesign.id, currentDesign.name);
+            
             closeModal();
             openDesign(currentDesign.id, currentDesign.name);
             alert('✅ Saved!');
+        }
+
+        function autoSyncToRegister(partyId, designId, designName) {
+            const sheet = getSheet(partyId, designId);
+            const registerEntries = getDaybookEntries(partyId);
+            
+            // For each date, calculate total dispatch and create/update REGISTER entry
+            sheet.dates.forEach(date => {
+                let totalDispatch = 0;
+                
+                // Sum dispatch values for this date across all sizes
+                sheet.sizes.forEach(size => {
+                    const key = `${size}_${date}`;
+                    const val = parseInt(sheet.data[key]) || 0;
+                    if(val > 0) totalDispatch += val;
+                });
+                
+                // Find existing entry for this date and design
+                const existingIndex = registerEntries.findIndex(e => 
+                    e.date === date && e.design === designName
+                );
+                
+                if(totalDispatch > 0) {
+                    // If dispatch > 0, create or update entry
+                    if(existingIndex >= 0) {
+                        registerEntries[existingIndex].pcs = totalDispatch;
+                    } else {
+                        registerEntries.push({
+                            date: date,
+                            pcs: totalDispatch,
+                            design: designName
+                        });
+                    }
+                } else if(totalDispatch === 0 && existingIndex >= 0) {
+                    // If dispatch = 0 and entry exists, update it to 0
+                    registerEntries[existingIndex].pcs = 0;
+                }
+            });
+            
+            saveDaybookEntries(partyId, registerEntries);
         }
 
         // CHAT
