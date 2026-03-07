@@ -21,6 +21,7 @@
         table { width: 100%; border-collapse: collapse; background: white; margin: 10px 0; }
         th, td { padding: 8px; border: 1px solid #ddd; font-size: 12px; text-align: center; }
         th { background: #34495e; color: white; }
+        .editable { background: #fffacd; cursor: pointer; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; }
         .modal.active { display: block; }
         .modal-content { background: white; padding: 20px; border-radius: 10px; margin: 50px auto; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
@@ -29,6 +30,8 @@
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
         .form-buttons { display: flex; gap: 10px; margin-top: 15px; }
         .form-buttons button { flex: 1; margin: 0; }
+        .filter-box { background: white; padding: 10px; border-radius: 5px; margin-bottom: 10px; border: 2px solid #3498db; }
+        .filter-box input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px; margin-bottom: 8px; }
         .back-btn { background: #95a5a6 !important; }
     </style>
 </head>
@@ -80,6 +83,10 @@
             <div id="registerDetail" class="page">
                 <button class="back-btn" onclick="goBack()">← BACK</button>
                 <div class="title" id="regTitle"></div>
+                <div class="filter-box">
+                    <input type="text" id="regDateF" placeholder="Filter Date" onkeyup="drawRegister()">
+                    <input type="number" id="regDispatchF" placeholder="Filter Dispatch" onkeyup="drawRegister()">
+                </div>
                 <table><tr><th>DATE</th><th>DISPATCH</th><th>TYPE</th><th>RETURN</th><th>DEL</th></tr><tbody id="regBody"></tbody></table>
                 <button onclick="openAddReg()">➕ ADD</button>
             </div>
@@ -92,6 +99,11 @@
             <div id="daybookDetail" class="page">
                 <button class="back-btn" onclick="goBack()">← BACK</button>
                 <div class="title" id="dbTitle"></div>
+                <div class="filter-box">
+                    <input type="text" id="dbDateF" placeholder="Filter Date" onkeyup="drawDaybook()">
+                    <input type="number" id="dbPcsF" placeholder="Filter PCS" onkeyup="drawDaybook()">
+                    <input type="text" id="dbDesignF" placeholder="Filter Design" onkeyup="drawDaybook()">
+                </div>
                 <table><tr><th>DATE</th><th>PCS</th><th>DESIGN</th><th>DEL</th></tr><tbody id="dbBody"></tbody></table>
                 <button onclick="openAddDb()">➕ ADD</button>
             </div>
@@ -142,6 +154,17 @@
             <div class="form-buttons">
                 <button onclick="saveDate()">Save</button>
                 <button onclick="closeModal('dateModal')" style="background:#95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cellModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Cell</h2>
+            <div class="form-group"><input type="text" id="cellVal"></div>
+            <div class="form-buttons">
+                <button onclick="saveCell()">Save</button>
+                <button onclick="closeModal('cellModal')" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
@@ -204,7 +227,7 @@
     </div>
 
     <script>
-        let p = null, d = null, rp = null, dp = null, g = null;
+        let p = null, d = null, rp = null, dp = null, g = null, editC = null;
         let voiceData = null, mediaRec = null;
 
         function goPage(page) {
@@ -233,9 +256,9 @@
         // PARTIES
         function loadParties() {
             let ps = JSON.parse(localStorage.getItem('parties') || '[]');
-            let html = '';
-            ps.forEach(x => html += `<div class="item" onclick="openParty('${x.id}','${x.n}')"><div>📦 ${x.n}</div></div>`);
-            document.getElementById('partiesDiv').innerHTML = html || '<p>No parties</p>';
+            let h = '';
+            ps.forEach(x => h += `<div class="item" onclick="openParty('${x.id}','${x.n}')"><div>📦 ${x.n}</div></div>`);
+            document.getElementById('partiesDiv').innerHTML = h || '<p>No parties</p>';
         }
         function openAddParty() { document.getElementById('partyName').value = ''; document.getElementById('partyModal').classList.add('active'); }
         function saveParty() {
@@ -258,9 +281,9 @@
         // DESIGNS
         function loadDesigns() {
             let ds = JSON.parse(localStorage.getItem(`des_${p.id}`) || '[]');
-            let html = '';
-            ds.forEach(x => html += `<div class="item" onclick="openDesign('${x.id}','${x.n}')"><div>🎨 ${x.n}</div></div>`);
-            document.getElementById('designsDiv').innerHTML = html || '<p>No designs</p>';
+            let h = '';
+            ds.forEach(x => h += `<div class="item" onclick="openDesign('${x.id}','${x.n}')"><div>🎨 ${x.n}</div></div>`);
+            document.getElementById('designsDiv').innerHTML = h || '<p>No designs</p>';
         }
         function openAddDesign() { document.getElementById('designName').value = ''; document.getElementById('designModal').classList.add('active'); }
         function saveDesign() {
@@ -283,16 +306,35 @@
         // SHEET
         function loadSheet() {
             let s = JSON.parse(localStorage.getItem(`sheet_${p.id}_${d.id}`) || '{"dates":[],"szs":["XXS","XS","S","M","L","XL","2XL","3XL"],"data":{}}');
-            let html = '<table><tr><th>SIZE</th>';
-            s.dates.forEach(x => html += `<th>${x}</th>`);
-            html += '</tr>';
+            let h = '<table><tr><th>TAILOR</th><th>SIZE</th><th>KATE</th><th>SILE</th><th>PEND</th>';
+            s.dates.forEach(x => h += `<th>${x}</th>`);
+            h += '<th>TOTAL DISPATCH</th><th>STOCK</th></tr>';
             s.szs.forEach(sz => {
-                html += `<tr><td>${sz}</td>`;
-                s.dates.forEach(x => html += `<td>${s.data[`${sz}_${x}`] || '-'}</td>`);
-                html += '</tr>';
+                let t = s.data[`${sz}_tailor`] || '-';
+                let k = parseInt(s.data[`${sz}_kate`]) || 50;
+                let si = parseInt(s.data[`${sz}_sile`]) || 0;
+                let pe = k - si;
+                let totalDisp = 0;
+                s.dates.forEach(x => {
+                    let val = parseInt(s.data[`${sz}_${x}`]);
+                    if(!isNaN(val)) totalDisp += val;
+                });
+                let stock = k - totalDisp;
+                h += `<tr><td class="editable" onclick="editCell('${sz}','tailor')">${t}</td><td>${sz}</td><td class="editable" onclick="editCell('${sz}','kate')">${k}</td><td class="editable" onclick="editCell('${sz}','sile')">${si}</td><td>${pe}</td>`;
+                s.dates.forEach(x => h += `<td class="editable" onclick="editCell('${sz}','${x}')">${s.data[`${sz}_${x}`] || '-'}</td>`);
+                h += `<td style="background:#fff9e6;font-weight:bold;">${totalDisp}</td><td style="background:#e8f8f5;font-weight:bold;">${stock}</td></tr>`;
             });
-            html += '</table>';
-            document.getElementById('sheetDiv').innerHTML = html;
+            h += '</table>';
+            document.getElementById('sheetDiv').innerHTML = h;
+        }
+        function editCell(sz, f) { editC = {sz, f}; document.getElementById('cellVal').value = ''; document.getElementById('cellModal').classList.add('active'); }
+        function saveCell() {
+            let v = document.getElementById('cellVal').value || '-';
+            let s = JSON.parse(localStorage.getItem(`sheet_${p.id}_${d.id}`) || '{"dates":[],"szs":["XXS","XS","S","M","L","XL","2XL","3XL"],"data":{}}');
+            s.data[`${editC.sz}_${editC.f}`] = v;
+            localStorage.setItem(`sheet_${p.id}_${d.id}`, JSON.stringify(s));
+            closeModal('cellModal');
+            loadSheet();
         }
         function openAddDate() { document.getElementById('dateVal').value = ''; document.getElementById('dateModal').classList.add('active'); }
         function saveDate() {
@@ -308,9 +350,9 @@
         // CHAT
         function loadGroups() {
             let gs = JSON.parse(localStorage.getItem('groups') || '[]');
-            let html = '';
-            gs.forEach(x => html += `<div class="item" onclick="openGroup('${x.id}','${x.n}')"><div>💬 ${x.n}</div></div>`);
-            document.getElementById('groupsDiv').innerHTML = html || '<p>No groups</p>';
+            let h = '';
+            gs.forEach(x => h += `<div class="item" onclick="openGroup('${x.id}','${x.n}')"><div>💬 ${x.n}</div></div>`);
+            document.getElementById('groupsDiv').innerHTML = h || '<p>No groups</p>';
         }
         function openAddGroup() { document.getElementById('groupName').value = ''; document.getElementById('groupModal').classList.add('active'); }
         function saveGroup() {
@@ -340,30 +382,35 @@
         }
         function loadMsgs() {
             let gx = JSON.parse(localStorage.getItem('groups') || '[]').find(x => x.id == g.id);
-            let html = '';
-            if(gx && gx.msgs) gx.msgs.forEach(x => html += `<div style="background:#e8f4f8;padding:8px;border-radius:3px;margin-bottom:5px;"><b>${x.t}</b><br><small>${x.time}</small></div>`);
-            document.getElementById('msgsDiv').innerHTML = html;
+            let h = '';
+            if(gx && gx.msgs) gx.msgs.forEach(x => h += `<div style="background:#e8f4f8;padding:8px;border-radius:3px;margin-bottom:5px;"><b>${x.t}</b><br><small>${x.time}</small></div>`);
+            document.getElementById('msgsDiv').innerHTML = h;
         }
 
         // REGISTER
         function loadRegParties() {
             let ps = JSON.parse(localStorage.getItem('parties') || '[]');
-            let html = '';
-            ps.forEach(x => html += `<div class="item" onclick="openRegParty('${x.id}','${x.n}')"><div>📋 ${x.n}</div></div>`);
-            document.getElementById('regPartiesDiv').innerHTML = html;
+            let h = '';
+            ps.forEach(x => h += `<div class="item" onclick="openRegParty('${x.id}','${x.n}')"><div>📋 ${x.n}</div></div>`);
+            document.getElementById('regPartiesDiv').innerHTML = h;
         }
         function openRegParty(id, n) {
             rp = {id, n};
             document.getElementById('register').classList.remove('active');
             document.getElementById('registerDetail').classList.add('active');
             document.getElementById('regTitle').textContent = n;
-            loadReg();
+            drawRegister();
         }
-        function loadReg() {
+        function drawRegister() {
             let rs = JSON.parse(localStorage.getItem(`reg_${rp.id}`) || '[]');
-            let html = '';
-            rs.forEach((x, i) => html += `<tr><td>${x.date}</td><td>${x.dispatch}</td><td>${x.type}</td><td>${x.ret}</td><td><button onclick="delReg(${i})" style="background:#e74c3c;width:auto;margin:0;padding:5px;">🗑️</button></td></tr>`);
-            document.getElementById('regBody').innerHTML = html;
+            let df = document.getElementById('regDateF').value.toLowerCase();
+            let dsf = document.getElementById('regDispatchF').value;
+            let h = '';
+            rs.forEach((x, i) => {
+                if((df && !x.date.toLowerCase().includes(df)) || (dsf && x.dispatch.toString() !== dsf)) return;
+                h += `<tr><td>${x.date}</td><td>${x.dispatch}</td><td>${x.type}</td><td>${x.ret}</td><td><button onclick="delReg(${i})" style="background:#e74c3c;width:auto;margin:0;padding:5px;">🗑️</button></td></tr>`;
+            });
+            document.getElementById('regBody').innerHTML = h;
         }
         function openAddReg() { document.getElementById('regDate').value = ''; document.getElementById('regDispatch').value = ''; document.getElementById('regModal').classList.add('active'); }
         function saveReg() {
@@ -373,35 +420,41 @@
             rs.push({date, dispatch, type, ret});
             localStorage.setItem(`reg_${rp.id}`, JSON.stringify(rs));
             closeModal('regModal');
-            loadReg();
+            drawRegister();
         }
         function delReg(i) {
             if(!confirm('Delete?')) return;
             let rs = JSON.parse(localStorage.getItem(`reg_${rp.id}`) || '[]');
             rs.splice(i, 1);
             localStorage.setItem(`reg_${rp.id}`, JSON.stringify(rs));
-            loadReg();
+            drawRegister();
         }
 
         // DAYBOOK
         function loadDbParties() {
             let ps = JSON.parse(localStorage.getItem('parties') || '[]');
-            let html = '';
-            ps.forEach(x => html += `<div class="item" onclick="openDbParty('${x.id}','${x.n}')"><div>📖 ${x.n}</div></div>`);
-            document.getElementById('dbPartiesDiv').innerHTML = html;
+            let h = '';
+            ps.forEach(x => h += `<div class="item" onclick="openDbParty('${x.id}','${x.n}')"><div>📖 ${x.n}</div></div>`);
+            document.getElementById('dbPartiesDiv').innerHTML = h;
         }
         function openDbParty(id, n) {
             dp = {id, n};
             document.getElementById('daybook').classList.remove('active');
             document.getElementById('daybookDetail').classList.add('active');
             document.getElementById('dbTitle').textContent = n;
-            loadDb();
+            drawDaybook();
         }
-        function loadDb() {
+        function drawDaybook() {
             let dbs = JSON.parse(localStorage.getItem(`db_${dp.id}`) || '[]');
-            let html = '';
-            dbs.forEach((x, i) => html += `<tr><td>${x.date}</td><td>${x.pcs}</td><td>${x.design}</td><td><button onclick="delDb(${i})" style="background:#e74c3c;width:auto;margin:0;padding:5px;">🗑️</button></td></tr>`);
-            document.getElementById('dbBody').innerHTML = html;
+            let dtf = document.getElementById('dbDateF').value.toLowerCase();
+            let pf = document.getElementById('dbPcsF').value;
+            let dnf = document.getElementById('dbDesignF').value.toLowerCase();
+            let h = '';
+            dbs.forEach((x, i) => {
+                if((dtf && !x.date.toLowerCase().includes(dtf)) || (pf && x.pcs.toString() !== pf) || (dnf && !x.design.toLowerCase().includes(dnf))) return;
+                h += `<tr><td>${x.date}</td><td>${x.pcs}</td><td>${x.design}</td><td><button onclick="delDb(${i})" style="background:#e74c3c;width:auto;margin:0;padding:5px;">🗑️</button></td></tr>`;
+            });
+            document.getElementById('dbBody').innerHTML = h;
         }
         function openAddDb() { document.getElementById('dbDate').value = ''; document.getElementById('dbPcs').value = ''; document.getElementById('dbDesign').value = ''; document.getElementById('dbModal').classList.add('active'); }
         function saveDb() {
@@ -411,38 +464,38 @@
             dbs.push({date, pcs, design});
             localStorage.setItem(`db_${dp.id}`, JSON.stringify(dbs));
             closeModal('dbModal');
-            loadDb();
+            drawDaybook();
         }
         function delDb(i) {
             if(!confirm('Delete?')) return;
             let dbs = JSON.parse(localStorage.getItem(`db_${dp.id}`) || '[]');
             dbs.splice(i, 1);
             localStorage.setItem(`db_${dp.id}`, JSON.stringify(dbs));
-            loadDb();
+            drawDaybook();
         }
 
         // REMINDERS
         function loadReminders() {
             let rs = JSON.parse(localStorage.getItem('reminders') || '[]');
-            let html = '';
+            let h = '';
             rs.forEach((x, i) => {
-                html += `<div style="background:white;padding:10px;border-radius:5px;margin-bottom:10px;">
+                h += `<div style="background:white;padding:10px;border-radius:5px;margin-bottom:10px;">
                     <div><b>${x.task}</b> ${x.voice?'🎤':''}</div>
-                    <div style="font-size:11px;color:#999;">Date: ${x.date} | ${x.status}</div>
+                    <div style="font-size:11px;color:#999;">Date: ${x.date}</div>
                     <div style="display:flex;gap:5px;margin-top:5px;">
                         ${x.voice?`<button onclick="playVoice2(${i})" style="flex:1;padding:5px;background:#27ae60;font-size:10px;">▶️</button>`:''}
                         <button onclick="delRem(${i})" style="flex:1;padding:5px;background:#e74c3c;font-size:10px;">🗑️</button>
                     </div>
                 </div>`;
             });
-            document.getElementById('remDiv').innerHTML = html || '<p>No reminders</p>';
+            document.getElementById('remDiv').innerHTML = h || '<p>No reminders</p>';
         }
         function openAddRem() { document.getElementById('remText').value = ''; document.getElementById('remDate').value = ''; voiceData = null; updateVoiceUI(); document.getElementById('remModal').classList.add('active'); }
         function saveRem() {
             let task = document.getElementById('remText').value, date = document.getElementById('remDate').value;
             if(!task || !date) { alert('Fill all'); return; }
             let rs = JSON.parse(localStorage.getItem('reminders') || '[]');
-            rs.push({task, date, voice: voiceData, status: 'pending'});
+            rs.push({task, date, voice: voiceData});
             localStorage.setItem('reminders', JSON.stringify(rs));
             closeModal('remModal');
             loadReminders();
