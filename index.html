@@ -3,25 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#34495e">
-    <title>Factory ERP</title>
+    <title>Factory ERP System</title>
     <link rel="manifest" href="./manifest.json">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background: #f5f5f5; }
         .container { height: 100vh; display: flex; flex-direction: column; }
-        header { background: #2c3e50; color: white; padding: 15px; }
-        header h1 { font-size: 20px; }
+        header { background: #2c3e50; color: white; padding: 15px; text-align: center; }
         .content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
         .page { display: none; }
         .page.active { display: block; }
-        .item { background: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .item-title { font-weight: bold; margin-bottom: 3px; font-size: 15px; }
-        .item-sub { font-size: 12px; color: #999; }
-        button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px; font-size: 15px; font-weight: bold; }
-        button:hover { background: #2980b9; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; border-top: 1px solid #ddd; padding: 5px 0; }
-        .nav-btn { flex: 1; padding: 12px; background: none; border: none; cursor: pointer; font-size: 24px; }
+        .item { background: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; }
+        .item-title { font-weight: bold; font-size: 15px; }
+        button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px; font-weight: bold; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; border-top: 1px solid #ddd; padding: 5px 0; z-index: 100; }
+        .nav-btn { flex: 1; padding: 12px; background: none; border: none; cursor: pointer; font-size: 22px; }
         .nav-btn.active { background: #f0f0f0; }
         table { width: 100%; border-collapse: collapse; background: white; margin: 10px 0; }
         th, td { padding: 8px; text-align: center; border: 1px solid #ddd; font-size: 12px; }
@@ -31,164 +27,117 @@
         .modal.active { display: flex; }
         .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 90%; max-height: 90vh; overflow-y: auto; }
         .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
         .form-buttons { display: flex; gap: 10px; margin-top: 15px; }
         .form-buttons button { flex: 1; margin: 0; }
-        .form-buttons .cancel { background: #95a5a6; }
-        .filter-box { background: white; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
-        .filter-box input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px; margin-bottom: 8px; font-size: 13px; }
-        .filter-buttons { display: flex; gap: 5px; }
-        .filter-buttons button { flex: 1; padding: 8px; font-size: 12px; margin: 0; }
+        .filter-box { background: white; padding: 12px; border-radius: 5px; margin-bottom: 12px; border: 2px solid #3498db; }
+        .filter-box input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 3px; margin-bottom: 8px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>📋 Factory ERP System</h1>
-        </header>
-
+        <header><h1>📋 Factory ERP System</h1></header>
         <div class="content">
-            <!-- HOME PAGE -->
             <div id="homePage" class="page active">
-                <div style="font-size: 16px; font-weight: bold; margin-bottom: 15px;">🏠 PARTIES</div>
+                <div style="font-weight:bold;margin-bottom:10px;">🏠 PARTIES</div>
                 <div id="partiesList"></div>
                 <button onclick="showAddPartyModal()">➕ ADD PARTY</button>
             </div>
 
-            <!-- DESIGNS PAGE -->
             <div id="designsPage" class="page">
-                <button onclick="goBack()" style="background: #95a5a6; margin-bottom: 10px;">← BACK</button>
-                <div style="font-weight: bold; margin-bottom: 10px;" id="designsTitle"></div>
+                <button onclick="goBack()" style="background:#95a5a6;margin-bottom:10px;">← BACK</button>
+                <div style="font-weight:bold;margin-bottom:10px;" id="designsTitle"></div>
                 <div id="designsList"></div>
                 <button onclick="showAddDesignModal()">➕ ADD DESIGN</button>
             </div>
 
-            <!-- SHEET PAGE -->
             <div id="sheetPage" class="page">
-                <button onclick="goBack()" style="background: #95a5a6; margin-bottom: 10px;">← BACK</button>
-                <div style="background: white; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 12px; font-weight: bold;" id="sheetInfo"></div>
-                
-                <!-- SHEET FILTERS -->
+                <button onclick="goBack()" style="background:#95a5a6;margin-bottom:10px;">← BACK</button>
+                <div style="font-weight:bold;margin-bottom:10px;" id="sheetTitle"></div>
                 <div class="filter-box">
-                    <input type="text" id="sheetFilterTailor" placeholder="🔍 Filter by Tailor Name (e.g., -, Ahmed)" onkeyup="filterSheetDisplay()">
-                    <input type="text" id="sheetFilterSize" placeholder="🔍 Filter by Size (XXS/XS/S/M/L/XL/2XL/3XL)" onkeyup="filterSheetDisplay()">
+                    <div style="font-weight:bold;margin-bottom:8px;">🔍 FILTERS:</div>
+                    <input type="text" id="tailorFilter" placeholder="Filter by Tailor Name" onkeyup="showSheetTable()">
+                    <input type="text" id="sizeFilter" placeholder="Filter by Size" onkeyup="showSheetTable()">
                 </div>
-                
-                <div id="sheetContainer"></div>
-                <button onclick="showAddDateModal()" style="margin-top: 10px;">📅 ADD NEW DATE</button>
+                <div id="sheetTableDiv"></div>
+                <button onclick="showAddDateModal()">📅 ADD NEW DATE</button>
             </div>
 
-            <!-- CHAT PAGE -->
             <div id="chatPage" class="page">
-                <div style="font-size: 16px; font-weight: bold; margin-bottom: 15px;">💬 GROUPS</div>
+                <div style="font-weight:bold;margin-bottom:10px;">💬 GROUPS</div>
                 <div id="groupsList"></div>
                 <button onclick="showAddGroupModal()">➕ NEW GROUP</button>
             </div>
 
-            <!-- CHAT DETAIL PAGE -->
             <div id="chatDetailPage" class="page">
-                <button onclick="goBack()" style="background: #95a5a6; margin-bottom: 10px;">← BACK</button>
-                <div id="messagesList" style="height: 300px; overflow-y: auto; margin-bottom: 15px; background: white; padding: 10px; border-radius: 5px;"></div>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="messageInput" placeholder="Type message..." style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-                    <button onclick="sendMessage()" style="width: auto; margin: 0;">Send</button>
+                <button onclick="goBack()" style="background:#95a5a6;margin-bottom:10px;">← BACK</button>
+                <div id="messagesList" style="height:300px;overflow-y:auto;background:white;padding:10px;border-radius:5px;margin-bottom:10px;"></div>
+                <div style="display:flex;gap:10px;">
+                    <input type="text" id="messageInput" placeholder="Type message..." style="flex:1;padding:10px;border:1px solid #ddd;border-radius:5px;">
+                    <button onclick="sendMessage()" style="width:auto;margin:0;">Send</button>
                 </div>
             </div>
 
-            <!-- REGISTER PAGE -->
             <div id="registerPage" class="page">
-                <div style="font-size: 16px; font-weight: bold; margin-bottom: 15px;">📋 PARTY REGISTER</div>
+                <div style="font-weight:bold;margin-bottom:10px;">📋 REGISTER - SELECT PARTY</div>
                 <div id="registerList"></div>
             </div>
 
-            <!-- REGISTER DETAIL PAGE -->
             <div id="registerDetailPage" class="page">
-                <button onclick="goBack()" style="background: #95a5a6; margin-bottom: 10px;">← BACK</button>
-                <div style="font-weight: bold; margin-bottom: 10px;" id="registerPartyTitle"></div>
-                
-                <!-- REGISTER FILTERS -->
+                <button onclick="goBack()" style="background:#95a5a6;margin-bottom:10px;">← BACK</button>
+                <div style="font-weight:bold;margin-bottom:10px;" id="registerTitle"></div>
                 <div class="filter-box">
-                    <input type="text" id="registerFilterDate" placeholder="🔍 Filter by Date (e.g., 5 Mar)" onkeyup="filterRegisterDisplay()">
-                    <input type="number" id="registerFilterDispatch" placeholder="🔍 Filter by Dispatch" onkeyup="filterRegisterDisplay()">
+                    <input type="text" id="regDateFilter" placeholder="Filter by Date" onkeyup="showRegisterTable()">
+                    <input type="number" id="regDispatchFilter" placeholder="Filter by Dispatch" onkeyup="showRegisterTable()">
                 </div>
-                
-                <table>
-                    <tr>
-                        <th>DATE</th>
-                        <th>DISPATCH</th>
-                        <th>TYPE</th>
-                        <th>RETURN</th>
-                        <th>EDIT</th>
-                        <th>DELETE</th>
-                    </tr>
-                    <tbody id="registerTableBody"></tbody>
-                </table>
+                <table><tr><th>DATE</th><th>DISPATCH</th><th>TYPE</th><th>RETURN</th><th>EDIT</th><th>DEL</th></tr><tbody id="regTableBody"></tbody></table>
                 <button onclick="showAddRegisterModal()">➕ ADD ENTRY</button>
             </div>
 
-            <!-- DAY BOOK PAGE -->
             <div id="daybookPage" class="page">
-                <div style="font-size: 16px; font-weight: bold; margin-bottom: 15px;">📖 DAY BOOK</div>
+                <div style="font-weight:bold;margin-bottom:10px;">📖 DAY BOOK - SELECT PARTY</div>
                 <div id="daybookList"></div>
             </div>
 
-            <!-- DAY BOOK DETAIL PAGE -->
             <div id="daybookDetailPage" class="page">
-                <button onclick="goBack()" style="background: #95a5a6; margin-bottom: 10px;">← BACK</button>
-                <div style="font-weight: bold; margin-bottom: 10px;" id="daybookPartyTitle"></div>
-                
-                <!-- DAY BOOK FILTERS -->
+                <button onclick="goBack()" style="background:#95a5a6;margin-bottom:10px;">← BACK</button>
+                <div style="font-weight:bold;margin-bottom:10px;" id="daybookTitle"></div>
                 <div class="filter-box">
-                    <input type="text" id="daybookFilterDate" placeholder="🔍 Filter by Date (e.g., 5 Mar)" onkeyup="filterDaybookDisplay()">
-                    <input type="number" id="daybookFilterPcs" placeholder="🔍 Filter by PCS" onkeyup="filterDaybookDisplay()">
-                    <input type="text" id="daybookFilterDesign" placeholder="🔍 Filter by Design Name" onkeyup="filterDaybookDisplay()">
+                    <input type="text" id="dbDateFilter" placeholder="Filter by Date" onkeyup="showDaybookTable()">
+                    <input type="number" id="dbPcsFilter" placeholder="Filter by PCS" onkeyup="showDaybookTable()">
+                    <input type="text" id="dbDesignFilter" placeholder="Filter by Design" onkeyup="showDaybookTable()">
                 </div>
-                
-                <table>
-                    <tr>
-                        <th>DATE</th>
-                        <th>PCS</th>
-                        <th>DESIGN</th>
-                        <th>EDIT</th>
-                        <th>DELETE</th>
-                    </tr>
-                    <tbody id="daybookTableBody"></tbody>
-                </table>
-                <button onclick="showAddDaybookEntryModal()">➕ ADD ENTRY</button>
+                <table><tr><th>DATE</th><th>PCS</th><th>DESIGN</th><th>EDIT</th><th>DEL</th></tr><tbody id="dbTableBody"></tbody></table>
+                <button onclick="showAddDaybookModal()">➕ ADD ENTRY</button>
             </div>
 
-            <!-- REMINDERS PAGE -->
             <div id="reminderPage" class="page">
-                <div style="font-size: 16px; font-weight: bold; margin-bottom: 15px;">📌 REMINDERS & TASKS</div>
-                
-                <!-- REMINDER SEARCH & FILTER -->
+                <div style="font-weight:bold;margin-bottom:10px;">📌 REMINDERS</div>
                 <div class="filter-box">
-                    <input type="text" id="reminderSearch" placeholder="🔍 Search reminders..." onkeyup="filterReminders()">
-                    <div class="filter-buttons">
-                        <button onclick="filterRemindersByStatus('all')">All</button>
-                        <button onclick="filterRemindersByStatus('pending')" style="background: #e74c3c;">⏳ Pending</button>
-                        <button onclick="filterRemindersByStatus('completed')" style="background: #27ae60;">✅ Done</button>
+                    <input type="text" id="remSearchInput" placeholder="Search tasks..." onkeyup="showReminderList()">
+                    <div style="display:flex;gap:5px;">
+                        <button onclick="filterRemStatus('all')" style="font-size:12px;">All</button>
+                        <button onclick="filterRemStatus('pending')" style="background:#e74c3c;font-size:12px;">Pending</button>
+                        <button onclick="filterRemStatus('completed')" style="background:#27ae60;font-size:12px;">Done</button>
                     </div>
                 </div>
-                
                 <div id="remindersList"></div>
                 <button onclick="showAddReminderModal()">➕ ADD REMINDER</button>
             </div>
         </div>
 
-        <!-- BOTTOM NAVIGATION -->
         <div class="bottom-nav">
-            <button class="nav-btn active" onclick="showPage('home')">🏠</button>
-            <button class="nav-btn" onclick="showPage('chat')">💬</button>
-            <button class="nav-btn" onclick="showPage('register')">📋</button>
-            <button class="nav-btn" onclick="showPage('daybook')">📖</button>
-            <button class="nav-btn" onclick="showPage('reminder')">📌</button>
+            <button class="nav-btn active" onclick="switchPage('home')">🏠</button>
+            <button class="nav-btn" onclick="switchPage('chat')">💬</button>
+            <button class="nav-btn" onclick="switchPage('register')">📋</button>
+            <button class="nav-btn" onclick="switchPage('daybook')">📖</button>
+            <button class="nav-btn" onclick="switchPage('reminder')">📌</button>
         </div>
     </div>
 
     <!-- MODALS -->
-    <div id="addPartyModal" class="modal">
+    <div id="partyModal" class="modal">
         <div class="modal-content">
             <h2>Add Party</h2>
             <div class="form-group">
@@ -197,12 +146,12 @@
             </div>
             <div class="form-buttons">
                 <button onclick="saveParty()">Save</button>
-                <button class="cancel" onclick="closeModal()">Cancel</button>
+                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
 
-    <div id="addDesignModal" class="modal">
+    <div id="designModal" class="modal">
         <div class="modal-content">
             <h2>Add Design</h2>
             <div class="form-group">
@@ -211,39 +160,39 @@
             </div>
             <div class="form-buttons">
                 <button onclick="saveDesign()">Save</button>
-                <button class="cancel" onclick="closeModal()">Cancel</button>
+                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
 
-    <div id="addDateModal" class="modal">
+    <div id="dateModal" class="modal">
         <div class="modal-content">
             <h2>Add Date</h2>
             <div class="form-group">
                 <label>Date (e.g., 5 Mar):</label>
-                <input type="text" id="dateInput" placeholder="e.g., 5 Mar">
+                <input type="text" id="dateVal" placeholder="5 Mar">
             </div>
             <div class="form-buttons">
                 <button onclick="saveDate()">Save</button>
-                <button class="cancel" onclick="closeModal()">Cancel</button>
+                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
 
-    <div id="editCellModal" class="modal">
+    <div id="cellModal" class="modal">
         <div class="modal-content">
-            <h2 id="editLabel">Edit Cell</h2>
+            <h2 id="cellLabel">Edit</h2>
             <div class="form-group">
-                <input type="text" id="editInput" placeholder="Enter value">
+                <input type="text" id="cellVal" placeholder="Value">
             </div>
             <div class="form-buttons">
-                <button onclick="saveEditCell()">Save</button>
-                <button class="cancel" onclick="closeModal()">Cancel</button>
+                <button onclick="saveCell()">Save</button>
+                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
 
-    <div id="addGroupModal" class="modal">
+    <div id="groupModal" class="modal">
         <div class="modal-content">
             <h2>Add Group</h2>
             <div class="form-group">
@@ -252,877 +201,478 @@
             </div>
             <div class="form-buttons">
                 <button onclick="saveGroup()">Save</button>
-                <button class="cancel" onclick="closeModal()">Cancel</button>
+                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
 
-    <div id="addRegisterModal" class="modal">
+    <div id="registerModal" class="modal">
         <div class="modal-content">
             <h2>Add Register Entry</h2>
-            <div class="form-group">
-                <label>Date:</label>
-                <input type="text" id="registerDate" placeholder="e.g., 5 Mar">
-            </div>
-            <div class="form-group">
-                <label>Dispatch:</label>
-                <input type="number" id="registerDispatch" placeholder="e.g., 50">
-            </div>
-            <div class="form-group">
-                <label>Type:</label>
-                <select id="registerType">
-                    <option>PCS</option>
-                    <option>SET</option>
-                    <option>CORD SET</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Return:</label>
-                <input type="number" id="registerReturn" placeholder="e.g., 0">
-            </div>
+            <div class="form-group"><label>Date:</label><input type="text" id="regDate" placeholder="5 Mar"></div>
+            <div class="form-group"><label>Dispatch:</label><input type="number" id="regDispatch" placeholder="50"></div>
+            <div class="form-group"><label>Type:</label><select id="regType"><option>PCS</option><option>SET</option><option>CORD SET</option></select></div>
+            <div class="form-group"><label>Return:</label><input type="number" id="regReturn" placeholder="0"></div>
             <div class="form-buttons">
                 <button onclick="saveRegisterEntry()">Save</button>
-                <button class="cancel" onclick="closeModal()">Cancel</button>
+                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
 
-    <div id="addDaybookEntryModal" class="modal">
+    <div id="daybookModal" class="modal">
         <div class="modal-content">
-            <h2>Add Day Book Entry</h2>
-            <div class="form-group">
-                <label>Date:</label>
-                <input type="text" id="daybookEntryDate" placeholder="e.g., 5 Mar">
-            </div>
-            <div class="form-group">
-                <label>PCS:</label>
-                <input type="number" id="daybookEntryPcs" placeholder="e.g., 50">
-            </div>
-            <div class="form-group">
-                <label>Design:</label>
-                <input type="text" id="daybookEntryDesign" placeholder="e.g., Paan Black">
-            </div>
+            <h2>Add Daybook Entry</h2>
+            <div class="form-group"><label>Date:</label><input type="text" id="dbDate" placeholder="5 Mar"></div>
+            <div class="form-group"><label>PCS:</label><input type="number" id="dbPcs" placeholder="50"></div>
+            <div class="form-group"><label>Design:</label><input type="text" id="dbDesign" placeholder="Paan Black"></div>
             <div class="form-buttons">
                 <button onclick="saveDaybookEntry()">Save</button>
-                <button class="cancel" onclick="closeModal()">Cancel</button>
+                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
 
-    <div id="addReminderModal" class="modal">
+    <div id="reminderModal" class="modal">
         <div class="modal-content">
-            <h2 id="reminderModalTitle">Add Reminder</h2>
-            <div class="form-group">
-                <label>Task:</label>
-                <textarea id="reminderText" placeholder="e.g., Call client" style="height: 80px;"></textarea>
-            </div>
+            <h2 id="remTitle">Add Reminder</h2>
+            <div class="form-group"><label>Task:</label><textarea id="remText" placeholder="What to do?" style="height:80px;"></textarea></div>
             <div class="form-group">
                 <label>🎤 Voice Note:</label>
-                <button type="button" id="voiceRecordBtn" onclick="toggleVoiceRecording()" style="background: #e74c3c;">🎙️ Start Recording</button>
-                <button type="button" id="voicePlayBtn" onclick="playReminderVoice()" style="background: #27ae60; display: none;">▶️ Play</button>
-                <button type="button" id="voiceClearBtn" onclick="clearReminderVoice()" style="background: #95a5a6; display: none;">✕ Clear</button>
-                <div id="voiceStatus" style="font-size: 11px; color: #999; margin-top: 5px;"></div>
+                <button type="button" id="voiceStartBtn" onclick="toggleVoice()" style="background:#e74c3c;">🎙️ Start Recording</button>
+                <button type="button" id="voicePlayBtn" onclick="playVoice()" style="background:#27ae60;display:none;">▶️ Play</button>
+                <button type="button" id="voiceClearBtn" onclick="clearVoice()" style="background:#95a5a6;display:none;">✕ Clear</button>
+                <div id="voiceStatus" style="font-size:11px;color:#999;margin-top:5px;"></div>
             </div>
-            <div class="form-group">
-                <label>Date:</label>
-                <input type="text" id="reminderDate" placeholder="e.g., 7 Mar">
-            </div>
-            <div class="form-group">
-                <label>Priority:</label>
-                <select id="reminderPriority">
-                    <option value="normal">Normal</option>
-                    <option value="urgent">⭐ Urgent</option>
-                </select>
-            </div>
+            <div class="form-group"><label>Date:</label><input type="text" id="remDate" placeholder="7 Mar"></div>
+            <div class="form-group"><label>Priority:</label><select id="remPriority"><option value="normal">Normal</option><option value="urgent">⭐ Urgent</option></select></div>
             <div class="form-buttons">
                 <button onclick="saveReminder()">Save</button>
-                <button class="cancel" onclick="closeModal()">Cancel</button>
+                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
 
     <script>
-        // GLOBAL VARIABLES
-        let currentParty = null;
-        let currentDesign = null;
-        let currentRegisterParty = null;
-        let currentDaybookParty = null;
-        let editingCell = null;
-        let currentEditingReminderIdx = null;
-        let mediaRecorder;
-        let reminderVoiceData = null;
-        let sheetData = {};
+        let cParty = null, cDesign = null, cRegParty = null, cDBParty = null, cGroup = null;
+        let cEditCell = null, cEditRemIdx = null, voiceData = null, mediaRec = null;
         let allReminders = [];
 
-        // PAGE NAVIGATION
-        function showPage(page) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            
-            if(page === 'home') {
-                document.getElementById('homePage').classList.add('active');
-                document.querySelector('.nav-btn:nth-child(1)').classList.add('active');
-                loadParties();
-            } else if(page === 'chat') {
-                document.getElementById('chatPage').classList.add('active');
-                document.querySelector('.nav-btn:nth-child(2)').classList.add('active');
-                loadGroups();
-            } else if(page === 'register') {
-                document.getElementById('registerPage').classList.add('active');
-                document.querySelector('.nav-btn:nth-child(3)').classList.add('active');
-                loadRegisterParties();
-            } else if(page === 'daybook') {
-                document.getElementById('daybookPage').classList.add('active');
-                document.querySelector('.nav-btn:nth-child(4)').classList.add('active');
-                loadDaybookParties();
-            } else if(page === 'reminder') {
-                document.getElementById('reminderPage').classList.add('active');
-                document.querySelector('.nav-btn:nth-child(5)').classList.add('active');
-                loadReminders();
-            }
+        function switchPage(p) {
+            document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
+            document.getElementById(p + 'Page').classList.add('active');
+            const idx = p === 'home' ? 0 : p === 'chat' ? 1 : p === 'register' ? 2 : p === 'daybook' ? 3 : 4;
+            document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+            if(p === 'home') loadParties();
+            else if(p === 'chat') loadGroups();
+            else if(p === 'register') loadRegisterParties();
+            else if(p === 'daybook') loadDaybookParties();
+            else if(p === 'reminder') loadReminderList();
         }
 
         function goBack() {
-            if(currentDesign) {
-                currentDesign = null;
+            if(cDesign) {
+                cDesign = null;
                 document.getElementById('sheetPage').classList.remove('active');
                 document.getElementById('designsPage').classList.add('active');
-            } else if(currentRegisterParty) {
-                currentRegisterParty = null;
+            } else if(cRegParty) {
+                cRegParty = null;
                 document.getElementById('registerDetailPage').classList.remove('active');
                 document.getElementById('registerPage').classList.add('active');
                 loadRegisterParties();
-            } else if(currentDaybookParty) {
-                currentDaybookParty = null;
+            } else if(cDBParty) {
+                cDBParty = null;
                 document.getElementById('daybookDetailPage').classList.remove('active');
                 document.getElementById('daybookPage').classList.add('active');
                 loadDaybookParties();
-            } else if(document.getElementById('chatDetailPage').classList.contains('active')) {
+            } else if(cGroup) {
+                cGroup = null;
                 document.getElementById('chatDetailPage').classList.remove('active');
                 document.getElementById('chatPage').classList.add('active');
                 loadGroups();
             } else {
+                cParty = null;
                 document.getElementById('designsPage').classList.remove('active');
                 document.getElementById('homePage').classList.add('active');
-                currentParty = null;
             }
         }
 
-        // PARTY FUNCTIONS
-        function getParties() {
-            return JSON.parse(localStorage.getItem('parties') || '[]');
-        }
+        function closeModal() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
 
-        function saveParties(parties) {
-            localStorage.setItem('parties', JSON.stringify(parties));
-        }
-
+        // PARTIES
+        function getParties() { return JSON.parse(localStorage.getItem('parties') || '[]'); }
+        function saveParties(p) { localStorage.setItem('parties', JSON.stringify(p)); }
         function loadParties() {
-            const parties = getParties();
             let html = '';
-            parties.forEach(party => {
-                html += `<div class="item" onclick="openParty('${party.id}', '${party.name}')">
-                    <div class="item-title">📦 ${party.name}</div>
-                </div>`;
-            });
-            document.getElementById('partiesList').innerHTML = html || '<p style="text-align: center; color: #999;">No parties yet</p>';
+            getParties().forEach(p => html += `<div class="item" onclick="openParty('${p.id}','${p.name}')"><div class="item-title">📦 ${p.name}</div></div>`);
+            document.getElementById('partiesList').innerHTML = html || '<p style="text-align:center;color:#999;">No parties</p>';
         }
-
-        function showAddPartyModal() {
-            document.getElementById('partyName').value = '';
-            document.getElementById('addPartyModal').classList.add('active');
-        }
-
+        function showAddPartyModal() { document.getElementById('partyName').value = ''; document.getElementById('partyModal').classList.add('active'); }
         function saveParty() {
-            const name = document.getElementById('partyName').value;
-            if(!name) return alert('Enter party name!');
-            
-            const parties = getParties();
-            parties.push({ id: Date.now(), name });
-            saveParties(parties);
+            const n = document.getElementById('partyName').value;
+            if(!n) return alert('Enter name!');
+            let p = getParties();
+            p.push({id: Date.now(), name: n});
+            saveParties(p);
             closeModal();
             loadParties();
-            alert('✅ Party added!');
         }
-
-        function openParty(partyId, partyName) {
-            currentParty = { id: partyId, name: partyName };
+        function openParty(id, n) {
+            cParty = {id, name: n};
             document.getElementById('homePage').classList.remove('active');
             document.getElementById('designsPage').classList.add('active');
-            document.getElementById('designsTitle').textContent = `🎨 ${partyName} - Designs`;
+            document.getElementById('designsTitle').textContent = `🎨 ${n}`;
             loadDesigns();
         }
 
-        // DESIGN FUNCTIONS
-        function getDesigns(partyId) {
-            return JSON.parse(localStorage.getItem(`designs_${partyId}`) || '[]');
-        }
-
-        function saveDesigns(partyId, designs) {
-            localStorage.setItem(`designs_${partyId}`, JSON.stringify(designs));
-        }
-
+        // DESIGNS
+        function getDesigns(pid) { return JSON.parse(localStorage.getItem(`des_${pid}`) || '[]'); }
+        function saveDesigns(pid, d) { localStorage.setItem(`des_${pid}`, JSON.stringify(d)); }
         function loadDesigns() {
-            const designs = getDesigns(currentParty.id);
             let html = '';
-            designs.forEach(design => {
-                html += `<div class="item" onclick="openDesign('${design.id}', '${design.name}')">
-                    <div class="item-title">🎨 ${design.name}</div>
-                </div>`;
-            });
-            document.getElementById('designsList').innerHTML = html || '<p style="text-align: center; color: #999;">No designs yet</p>';
+            getDesigns(cParty.id).forEach(d => html += `<div class="item" onclick="openDesign('${d.id}','${d.name}')"><div class="item-title">🎨 ${d.name}</div></div>`);
+            document.getElementById('designsList').innerHTML = html || '<p style="text-align:center;color:#999;">No designs</p>';
         }
-
-        function showAddDesignModal() {
-            document.getElementById('designName').value = '';
-            document.getElementById('addDesignModal').classList.add('active');
-        }
-
+        function showAddDesignModal() { document.getElementById('designName').value = ''; document.getElementById('designModal').classList.add('active'); }
         function saveDesign() {
-            const name = document.getElementById('designName').value;
-            if(!name) return alert('Enter design name!');
-            
-            const designs = getDesigns(currentParty.id);
-            designs.push({ id: Date.now(), name });
-            saveDesigns(currentParty.id, designs);
+            const n = document.getElementById('designName').value;
+            if(!n) return alert('Enter name!');
+            let d = getDesigns(cParty.id);
+            d.push({id: Date.now(), name: n});
+            saveDesigns(cParty.id, d);
             closeModal();
             loadDesigns();
-            alert('✅ Design added!');
         }
-
-        // SHEET FUNCTIONS
-        function getSheet(partyId, designId) {
-            const key = `sheet_${partyId}_${designId}`;
-            const data = JSON.parse(localStorage.getItem(key) || '{"dates":[],"sizes":["XXS","XS","S","M","L","XL","2XL","3XL"],"data":{}}');
-            return data;
-        }
-
-        function saveSheet(partyId, designId, sheet) {
-            const key = `sheet_${partyId}_${designId}`;
-            localStorage.setItem(key, JSON.stringify(sheet));
-        }
-
-        function openDesign(designId, designName) {
-            currentDesign = { id: designId, name: designName };
+        function openDesign(id, n) {
+            cDesign = {id, name: n};
             document.getElementById('designsPage').classList.remove('active');
             document.getElementById('sheetPage').classList.add('active');
-            document.getElementById('sheetInfo').innerHTML = `<b>${currentParty.name}</b> | 🎨 ${designName}`;
-            displaySheet();
+            document.getElementById('sheetTitle').textContent = `${cParty.name} | 🎨 ${n}`;
+            showSheetTable();
         }
 
-        function displaySheet() {
-            const sheet = getSheet(currentParty.id, currentDesign.id);
-            let html = '<table><tr><th>TAILOR</th><th>SIZE</th><th>KATE</th><th>SILE</th><th>PEND</th>';
-            
-            sheet.dates.forEach(date => {
-                html += `<th>${date}<br><button onclick="editDate('${date}')" style="background: #3498db; padding: 2px 6px; font-size: 10px; margin-right: 2px; width: auto;">✏️</button><button onclick="deleteDate('${date}')" style="background: #e74c3c; padding: 2px 6px; font-size: 10px; width: auto;">🗑️</button></th>`;
-            });
-            html += '<th>TOTAL</th></tr>';
-
-            sheet.sizes.forEach(size => {
-                const tailor = sheet.data[`${size}_tailor`] || '-';
-                const kate = parseInt(sheet.data[`${size}_kate`]) || 50;
-                const sile = parseInt(sheet.data[`${size}_sile`]) || 0;
-                const pend = kate - sile;
-                
-                html += `<tr>`;
-                html += `<td class="editable" onclick="editCell('${size}', 'tailor')">${tailor}</td>`;
-                html += `<td>${size}</td>`;
-                html += `<td class="editable" onclick="editCell('${size}', 'kate')">${kate}</td>`;
-                html += `<td class="editable" onclick="editCell('${size}', 'sile')">${sile}</td>`;
-                html += `<td>${pend}</td>`;
-                
-                let total = 0;
-                sheet.dates.forEach(date => {
-                    const val = sheet.data[`${size}_${date}`] || '-';
-                    html += `<td class="editable" onclick="editCell('${size}', '${date}')">${val}</td>`;
-                    if(val !== '-') total += parseInt(val);
-                });
-                
-                html += `<td>${total}</td></tr>`;
-            });
-
-            html += `<tr style="background: #c8e6c9; font-weight: bold;"><td>TOTAL</td><td></td><td></td><td></td><td></td>`;
-            sheet.dates.forEach(date => {
-                let dateTotal = 0;
-                sheet.sizes.forEach(size => {
-                    const val = sheet.data[`${size}_${date}`];
-                    if(val && val !== '-') dateTotal += parseInt(val);
-                });
-                html += `<td>${dateTotal}</td>`;
-            });
-            html += '<td></td></tr></table>';
-
-            document.getElementById('sheetContainer').innerHTML = html;
+        // SHEET
+        function getSheet(pid, did) {
+            const k = `sheet_${pid}_${did}`;
+            return JSON.parse(localStorage.getItem(k) || '{"dates":[],"sizes":["XXS","XS","S","M","L","XL","2XL","3XL"],"data":{}}');
         }
-
-        function filterSheetDisplay() {
-            const tailor = document.getElementById('sheetFilterTailor').value.toLowerCase();
-            const size = document.getElementById('sheetFilterSize').value.toUpperCase();
-            const sheet = getSheet(currentParty.id, currentDesign.id);
-            
+        function saveSheet(pid, did, s) { localStorage.setItem(`sheet_${pid}_${did}`, JSON.stringify(s)); }
+        function showSheetTable() {
+            const s = getSheet(cParty.id, cDesign.id);
+            const tf = document.getElementById('tailorFilter').value.toLowerCase();
+            const sf = document.getElementById('sizeFilter').value.toUpperCase();
             let html = '<table><tr><th>TAILOR</th><th>SIZE</th><th>KATE</th><th>SILE</th><th>PEND</th>';
-            
-            sheet.dates.forEach(date => {
-                html += `<th>${date}</th>`;
-            });
-            html += '<th>TOTAL</th></tr>';
-
-            let hasRows = false;
-            sheet.sizes.forEach(sz => {
-                if(size && !sz.includes(size)) return;
-                
-                const tailorVal = sheet.data[`${sz}_tailor`] || '-';
-                if(tailor && !tailorVal.toLowerCase().includes(tailor)) return;
-                
-                hasRows = true;
-                const kate = parseInt(sheet.data[`${sz}_kate`]) || 50;
-                const sile = parseInt(sheet.data[`${sz}_sile`]) || 0;
-                const pend = kate - sile;
-                
-                html += `<tr>`;
-                html += `<td class="editable" onclick="editCell('${sz}', 'tailor')">${tailorVal}</td>`;
-                html += `<td>${sz}</td>`;
-                html += `<td class="editable" onclick="editCell('${sz}', 'kate')">${kate}</td>`;
-                html += `<td class="editable" onclick="editCell('${sz}', 'sile')">${sile}</td>`;
-                html += `<td>${pend}</td>`;
-                
-                let total = 0;
-                sheet.dates.forEach(date => {
-                    const val = sheet.data[`${sz}_${date}`] || '-';
-                    html += `<td class="editable" onclick="editCell('${sz}', '${date}')">${val}</td>`;
-                    if(val !== '-') total += parseInt(val);
+            s.dates.forEach(d => html += `<th>${d}</th>`);
+            html += '</tr>';
+            s.sizes.forEach(sz => {
+                if(sf && !sz.includes(sf)) return;
+                const t = s.data[`${sz}_tailor`] || '-';
+                if(tf && !t.toLowerCase().includes(tf)) return;
+                const k = parseInt(s.data[`${sz}_kate`]) || 50;
+                const si = parseInt(s.data[`${sz}_sile`]) || 0;
+                const p = k - si;
+                html += `<tr><td class="editable" onclick="openCellEditor('${sz}','tailor')">${t}</td><td>${sz}</td><td class="editable" onclick="openCellEditor('${sz}','kate')">${k}</td><td class="editable" onclick="openCellEditor('${sz}','sile')">${si}</td><td>${p}</td>`;
+                s.dates.forEach(d => {
+                    const v = s.data[`${sz}_${d}`] || '-';
+                    html += `<td class="editable" onclick="openCellEditor('${sz}','${d}')">${v}</td>`;
                 });
-                
-                html += `<td>${total}</td></tr>`;
+                html += '</tr>';
             });
-
-            if(!hasRows) html += `<tr><td colspan="100%" style="text-align: center; padding: 20px; color: #999;">No matching records</td></tr>`;
-
             html += '</table>';
-            document.getElementById('sheetContainer').innerHTML = html;
+            document.getElementById('sheetTableDiv').innerHTML = html;
         }
-
-        function editCell(size, field) {
-            editingCell = { size, field };
-            document.getElementById('editLabel').textContent = `${size} - ${field.toUpperCase()}`;
-            document.getElementById('editInput').value = '';
-            document.getElementById('editCellModal').classList.add('active');
-        }
-
-        function saveEditCell() {
-            const value = document.getElementById('editInput').value || '-';
-            const sheet = getSheet(currentParty.id, currentDesign.id);
-            const key = `${editingCell.size}_${editingCell.field}`;
-            sheet.data[key] = value;
-            saveSheet(currentParty.id, currentDesign.id, sheet);
+        function openCellEditor(sz, f) { cEditCell = {sz, f}; document.getElementById('cellLabel').textContent = `${sz} - ${f}`; document.getElementById('cellVal').value = ''; document.getElementById('cellModal').classList.add('active'); }
+        function saveCell() {
+            const v = document.getElementById('cellVal').value || '-';
+            const s = getSheet(cParty.id, cDesign.id);
+            s.data[`${cEditCell.sz}_${cEditCell.f}`] = v;
+            saveSheet(cParty.id, cDesign.id, s);
             closeModal();
-            displaySheet();
-            alert('✅ Updated!');
+            showSheetTable();
         }
-
-        function showAddDateModal() {
-            document.getElementById('dateInput').value = '';
-            document.getElementById('addDateModal').classList.add('active');
-        }
-
+        function showAddDateModal() { document.getElementById('dateVal').value = ''; document.getElementById('dateModal').classList.add('active'); }
         function saveDate() {
-            const date = document.getElementById('dateInput').value;
-            if(!date) return alert('Enter date!');
-            
-            const sheet = getSheet(currentParty.id, currentDesign.id);
-            if(!sheet.dates.includes(date)) {
-                sheet.dates.push(date);
-                saveSheet(currentParty.id, currentDesign.id, sheet);
-            }
+            const d = document.getElementById('dateVal').value;
+            if(!d) return alert('Enter date!');
+            const s = getSheet(cParty.id, cDesign.id);
+            if(!s.dates.includes(d)) s.dates.push(d);
+            saveSheet(cParty.id, cDesign.id, s);
             closeModal();
-            displaySheet();
-            alert('✅ Date added!');
+            showSheetTable();
         }
 
-        function deleteDate(date) {
-            if(!confirm('Delete this date?')) return;
-            const sheet = getSheet(currentParty.id, currentDesign.id);
-            sheet.dates = sheet.dates.filter(d => d !== date);
-            saveSheet(currentParty.id, currentDesign.id, sheet);
-            displaySheet();
-            alert('✅ Date deleted!');
-        }
-
-        function editDate(date) {
-            document.getElementById('dateInput').value = date;
-            editingCell = { type: 'date', oldDate: date };
-            document.getElementById('addDateModal').classList.add('active');
-        }
-
-        // CHAT FUNCTIONS
-        function getGroups() {
-            return JSON.parse(localStorage.getItem('groups') || '[]');
-        }
-
-        function saveGroups(groups) {
-            localStorage.setItem('groups', JSON.stringify(groups));
-        }
-
+        // CHAT
+        function getGroups() { return JSON.parse(localStorage.getItem('groups') || '[]'); }
+        function saveGroups(g) { localStorage.setItem('groups', JSON.stringify(g)); }
         function loadGroups() {
-            const groups = getGroups();
             let html = '';
-            groups.forEach(group => {
-                html += `<div class="item" onclick="openGroup('${group.id}', '${group.name}')">
-                    <div class="item-title">💬 ${group.name}</div>
-                </div>`;
-            });
-            document.getElementById('groupsList').innerHTML = html || '<p style="text-align: center; color: #999;">No groups yet</p>';
+            getGroups().forEach(g => html += `<div class="item" onclick="openGroup('${g.id}','${g.name}')"><div class="item-title">💬 ${g.name}</div></div>`);
+            document.getElementById('groupsList').innerHTML = html || '<p style="text-align:center;color:#999;">No groups</p>';
         }
-
-        function showAddGroupModal() {
-            document.getElementById('groupName').value = '';
-            document.getElementById('addGroupModal').classList.add('active');
-        }
-
+        function showAddGroupModal() { document.getElementById('groupName').value = ''; document.getElementById('groupModal').classList.add('active'); }
         function saveGroup() {
-            const name = document.getElementById('groupName').value;
-            if(!name) return alert('Enter group name!');
-            
-            const groups = getGroups();
-            groups.push({ id: Date.now(), name, messages: [] });
-            saveGroups(groups);
+            const n = document.getElementById('groupName').value;
+            if(!n) return alert('Enter name!');
+            let g = getGroups();
+            g.push({id: Date.now(), name: n, msgs: []});
+            saveGroups(g);
             closeModal();
             loadGroups();
-            alert('✅ Group added!');
         }
-
-        function openGroup(groupId, groupName) {
-            currentParty = { id: groupId, name: groupName };
+        function openGroup(id, n) {
+            cGroup = {id, name: n};
             document.getElementById('chatPage').classList.remove('active');
             document.getElementById('chatDetailPage').classList.add('active');
+            loadMessages();
         }
-
         function sendMessage() {
-            const text = document.getElementById('messageInput').value;
-            if(!text) return;
-            
-            const groups = getGroups();
-            const group = groups.find(g => g.id == currentParty.id);
-            if(group) {
-                if(!group.messages) group.messages = [];
-                group.messages.push({ text, time: new Date().toLocaleString() });
-                saveGroups(groups);
-                document.getElementById('messageInput').value = '';
-                loadMessages();
-            }
+            const t = document.getElementById('messageInput').value;
+            if(!t) return;
+            const g = getGroups().find(x => x.id == cGroup.id);
+            if(!g.msgs) g.msgs = [];
+            g.msgs.push({t, time: new Date().toLocaleString()});
+            saveGroups(getGroups());
+            document.getElementById('messageInput').value = '';
+            loadMessages();
         }
-
         function loadMessages() {
-            const groups = getGroups();
-            const group = groups.find(g => g.id == currentParty.id);
+            const g = getGroups().find(x => x.id == cGroup.id);
             let html = '';
-            if(group && group.messages) {
-                group.messages.forEach(msg => {
-                    html += `<div style="background: #e8f4f8; padding: 10px; border-radius: 5px; margin-bottom: 8px;">
-                        <strong>Message:</strong> ${msg.text}<br>
-                        <small style="color: #999;">${msg.time}</small>
-                    </div>`;
-                });
-            }
+            if(g && g.msgs) g.msgs.forEach(m => html += `<div style="background:#e8f4f8;padding:10px;border-radius:5px;margin-bottom:8px;"><strong>${m.t}</strong><br><small>${m.time}</small></div>`);
             document.getElementById('messagesList').innerHTML = html;
         }
 
-        // REGISTER FUNCTIONS
-        function getRegister(partyId) {
-            return JSON.parse(localStorage.getItem(`register_${partyId}`) || '[]');
-        }
-
-        function saveRegister(partyId, register) {
-            localStorage.setItem(`register_${partyId}`, JSON.stringify(register));
-        }
-
+        // REGISTER
+        function getRegister(pid) { return JSON.parse(localStorage.getItem(`reg_${pid}`) || '[]'); }
+        function saveRegister(pid, r) { localStorage.setItem(`reg_${pid}`, JSON.stringify(r)); }
         function loadRegisterParties() {
-            const parties = getParties();
             let html = '';
-            parties.forEach(party => {
-                html += `<div class="item" onclick="openRegister('${party.id}', '${party.name}')">
-                    <div class="item-title">📋 ${party.name}</div>
-                </div>`;
-            });
+            getParties().forEach(p => html += `<div class="item" onclick="openRegister('${p.id}','${p.name}')"><div class="item-title">📋 ${p.name}</div></div>`);
             document.getElementById('registerList').innerHTML = html;
         }
-
-        function openRegister(partyId, partyName) {
-            currentRegisterParty = { id: partyId, name: partyName };
+        function openRegister(id, n) {
+            cRegParty = {id, name: n};
             document.getElementById('registerPage').classList.remove('active');
             document.getElementById('registerDetailPage').classList.add('active');
-            document.getElementById('registerPartyTitle').textContent = `📋 ${partyName}`;
-            loadRegisterEntries();
+            document.getElementById('registerTitle').textContent = `📋 ${n}`;
+            showRegisterTable();
         }
-
-        function loadRegisterEntries() {
-            const entries = getRegister(currentRegisterParty.id);
+        function showRegisterTable() {
+            const r = getRegister(cRegParty.id);
+            const df = document.getElementById('regDateFilter').value.toLowerCase();
+            const dsf = document.getElementById('regDispatchFilter').value;
             let html = '';
-            entries.forEach((entry, idx) => {
-                html += `<tr>
-                    <td>${entry.date}</td>
-                    <td>${entry.dispatch}</td>
-                    <td>${entry.type}</td>
-                    <td>${entry.return || 0}</td>
-                    <td><button onclick="editRegisterEntry(${idx})" style="background: #3498db; padding: 5px 10px; width: auto; font-size: 11px;">✏️</button></td>
-                    <td><button onclick="deleteRegisterEntry(${idx})" style="background: #e74c3c; padding: 5px 10px; width: auto; font-size: 11px;">🗑️</button></td>
-                </tr>`;
+            r.forEach((e, i) => {
+                if((df && !e.d.toLowerCase().includes(df)) || (dsf && e.ds.toString() !== dsf)) return;
+                html += `<tr><td>${e.d}</td><td>${e.ds}</td><td>${e.t}</td><td>${e.r||0}</td><td><button onclick="editReg(${i})" style="background:#3498db;padding:5px 8px;width:auto;margin:0;font-size:11px;">✏️</button></td><td><button onclick="delReg(${i})" style="background:#e74c3c;padding:5px 8px;width:auto;margin:0;font-size:11px;">🗑️</button></td></tr>`;
             });
-            document.getElementById('registerTableBody').innerHTML = html;
+            document.getElementById('regTableBody').innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:#999;padding:20px;">No matches</td></tr>';
         }
-
-        function filterRegisterDisplay() {
-            const entries = getRegister(currentRegisterParty.id);
-            const dateFilter = document.getElementById('registerFilterDate').value.toLowerCase();
-            const dispatchFilter = document.getElementById('registerFilterDispatch').value;
-            
-            let html = '';
-            entries.forEach((entry, idx) => {
-                if((dateFilter && !entry.date.toLowerCase().includes(dateFilter)) || 
-                   (dispatchFilter && entry.dispatch.toString() !== dispatchFilter)) return;
-                
-                html += `<tr>
-                    <td>${entry.date}</td>
-                    <td>${entry.dispatch}</td>
-                    <td>${entry.type}</td>
-                    <td>${entry.return || 0}</td>
-                    <td><button onclick="editRegisterEntry(${idx})" style="background: #3498db; padding: 5px 10px; width: auto; font-size: 11px;">✏️</button></td>
-                    <td><button onclick="deleteRegisterEntry(${idx})" style="background: #e74c3c; padding: 5px 10px; width: auto; font-size: 11px;">🗑️</button></td>
-                </tr>`;
-            });
-            document.getElementById('registerTableBody').innerHTML = html || '<tr><td colspan="6" style="text-align: center; color: #999;">No matching records</td></tr>';
-        }
-
-        function showAddRegisterModal() {
-            document.getElementById('registerDate').value = '';
-            document.getElementById('registerDispatch').value = '';
-            document.getElementById('registerType').value = 'PCS';
-            document.getElementById('registerReturn').value = '';
-            document.getElementById('addRegisterModal').classList.add('active');
-        }
-
+        function showAddRegisterModal() { document.getElementById('regDate').value = ''; document.getElementById('regDispatch').value = ''; document.getElementById('regReturn').value = ''; document.getElementById('registerModal').classList.add('active'); }
         function saveRegisterEntry() {
-            const date = document.getElementById('registerDate').value;
-            const dispatch = parseInt(document.getElementById('registerDispatch').value);
-            const type = document.getElementById('registerType').value;
-            const returnVal = parseInt(document.getElementById('registerReturn').value) || 0;
-            
-            if(!date || !dispatch) return alert('Fill all fields!');
-            
-            const entries = getRegister(currentRegisterParty.id);
-            entries.push({ date, dispatch, type, return: returnVal });
-            saveRegister(currentRegisterParty.id, entries);
+            const d = document.getElementById('regDate').value, ds = parseInt(document.getElementById('regDispatch').value), t = document.getElementById('regType').value, r = parseInt(document.getElementById('regReturn').value)||0;
+            if(!d || !ds) return alert('Fill all!');
+            let reg = getRegister(cRegParty.id);
+            reg.push({d, ds, t, r});
+            saveRegister(cRegParty.id, reg);
             closeModal();
-            loadRegisterEntries();
-            alert('✅ Entry added!');
+            showRegisterTable();
+        }
+        function editReg(i) {
+            const r = getRegister(cRegParty.id)[i];
+            document.getElementById('regDate').value = r.d;
+            document.getElementById('regDispatch').value = r.ds;
+            document.getElementById('regType').value = r.t;
+            document.getElementById('regReturn').value = r.r;
+            cEditCell = {i, type: 'reg'};
+            document.getElementById('registerModal').classList.add('active');
+        }
+        function delReg(i) {
+            if(!confirm('Delete?')) return;
+            let r = getRegister(cRegParty.id);
+            r.splice(i, 1);
+            saveRegister(cRegParty.id, r);
+            showRegisterTable();
         }
 
-        function editRegisterEntry(idx) {
-            const entries = getRegister(currentRegisterParty.id);
-            const entry = entries[idx];
-            document.getElementById('registerDate').value = entry.date;
-            document.getElementById('registerDispatch').value = entry.dispatch;
-            document.getElementById('registerType').value = entry.type;
-            document.getElementById('registerReturn').value = entry.return || 0;
-            editingCell = { type: 'register', index: idx };
-            document.getElementById('addRegisterModal').classList.add('active');
-        }
-
-        function deleteRegisterEntry(idx) {
-            if(!confirm('Delete this entry?')) return;
-            const entries = getRegister(currentRegisterParty.id);
-            entries.splice(idx, 1);
-            saveRegister(currentRegisterParty.id, entries);
-            loadRegisterEntries();
-            alert('✅ Entry deleted!');
-        }
-
-        // DAY BOOK FUNCTIONS
-        function getDaybook(partyId) {
-            return JSON.parse(localStorage.getItem(`daybook_${partyId}`) || '[]');
-        }
-
-        function saveDaybook(partyId, daybook) {
-            localStorage.setItem(`daybook_${partyId}`, JSON.stringify(daybook));
-        }
-
+        // DAYBOOK
+        function getDaybook(pid) { return JSON.parse(localStorage.getItem(`db_${pid}`) || '[]'); }
+        function saveDaybook(pid, d) { localStorage.setItem(`db_${pid}`, JSON.stringify(d)); }
         function loadDaybookParties() {
-            const parties = getParties();
             let html = '';
-            parties.forEach(party => {
-                html += `<div class="item" onclick="openDaybook('${party.id}', '${party.name}')">
-                    <div class="item-title">📖 ${party.name}</div>
-                </div>`;
-            });
+            getParties().forEach(p => html += `<div class="item" onclick="openDaybook('${p.id}','${p.name}')"><div class="item-title">📖 ${p.name}</div></div>`);
             document.getElementById('daybookList').innerHTML = html;
         }
-
-        function openDaybook(partyId, partyName) {
-            currentDaybookParty = { id: partyId, name: partyName };
+        function openDaybook(id, n) {
+            cDBParty = {id, name: n};
             document.getElementById('daybookPage').classList.remove('active');
             document.getElementById('daybookDetailPage').classList.add('active');
-            document.getElementById('daybookPartyTitle').textContent = `📖 ${partyName}`;
-            loadDaybookEntries();
+            document.getElementById('daybookTitle').textContent = `📖 ${n}`;
+            showDaybookTable();
         }
-
-        function loadDaybookEntries() {
-            const entries = getDaybook(currentDaybookParty.id);
+        function showDaybookTable() {
+            const d = getDaybook(cDBParty.id);
+            const dtf = document.getElementById('dbDateFilter').value.toLowerCase();
+            const pf = document.getElementById('dbPcsFilter').value;
+            const dnf = document.getElementById('dbDesignFilter').value.toLowerCase();
             let html = '';
-            entries.forEach((entry, idx) => {
-                html += `<tr>
-                    <td>${entry.date}</td>
-                    <td>${entry.pcs}</td>
-                    <td>${entry.design}</td>
-                    <td><button onclick="editDaybookEntry(${idx})" style="background: #3498db; padding: 5px 10px; width: auto; font-size: 11px;">✏️</button></td>
-                    <td><button onclick="deleteDaybookEntry(${idx})" style="background: #e74c3c; padding: 5px 10px; width: auto; font-size: 11px;">🗑️</button></td>
-                </tr>`;
+            d.forEach((e, i) => {
+                if((dtf && !e.dt.toLowerCase().includes(dtf)) || (pf && e.p.toString() !== pf) || (dnf && !e.dn.toLowerCase().includes(dnf))) return;
+                html += `<tr><td>${e.dt}</td><td>${e.p}</td><td>${e.dn}</td><td><button onclick="editDB(${i})" style="background:#3498db;padding:5px 8px;width:auto;margin:0;font-size:11px;">✏️</button></td><td><button onclick="delDB(${i})" style="background:#e74c3c;padding:5px 8px;width:auto;margin:0;font-size:11px;">🗑️</button></td></tr>`;
             });
-            document.getElementById('daybookTableBody').innerHTML = html;
+            document.getElementById('dbTableBody').innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">No matches</td></tr>';
         }
-
-        function filterDaybookDisplay() {
-            const entries = getDaybook(currentDaybookParty.id);
-            const dateFilter = document.getElementById('daybookFilterDate').value.toLowerCase();
-            const pcsFilter = document.getElementById('daybookFilterPcs').value;
-            const designFilter = document.getElementById('daybookFilterDesign').value.toLowerCase();
-            
-            let html = '';
-            entries.forEach((entry, idx) => {
-                if((dateFilter && !entry.date.toLowerCase().includes(dateFilter)) ||
-                   (pcsFilter && entry.pcs.toString() !== pcsFilter) ||
-                   (designFilter && !entry.design.toLowerCase().includes(designFilter))) return;
-                
-                html += `<tr>
-                    <td>${entry.date}</td>
-                    <td>${entry.pcs}</td>
-                    <td>${entry.design}</td>
-                    <td><button onclick="editDaybookEntry(${idx})" style="background: #3498db; padding: 5px 10px; width: auto; font-size: 11px;">✏️</button></td>
-                    <td><button onclick="deleteDaybookEntry(${idx})" style="background: #e74c3c; padding: 5px 10px; width: auto; font-size: 11px;">🗑️</button></td>
-                </tr>`;
-            });
-            document.getElementById('daybookTableBody').innerHTML = html || '<tr><td colspan="5" style="text-align: center; color: #999;">No matching records</td></tr>';
-        }
-
-        function showAddDaybookEntryModal() {
-            document.getElementById('daybookEntryDate').value = '';
-            document.getElementById('daybookEntryPcs').value = '';
-            document.getElementById('daybookEntryDesign').value = '';
-            document.getElementById('addDaybookEntryModal').classList.add('active');
-        }
-
+        function showAddDaybookModal() { document.getElementById('dbDate').value = ''; document.getElementById('dbPcs').value = ''; document.getElementById('dbDesign').value = ''; document.getElementById('daybookModal').classList.add('active'); }
         function saveDaybookEntry() {
-            const date = document.getElementById('daybookEntryDate').value;
-            const pcs = parseInt(document.getElementById('daybookEntryPcs').value);
-            const design = document.getElementById('daybookEntryDesign').value;
-            
-            if(!date || !pcs || !design) return alert('Fill all fields!');
-            
-            const entries = getDaybook(currentDaybookParty.id);
-            entries.push({ date, pcs, design });
-            saveDaybook(currentDaybookParty.id, entries);
+            const dt = document.getElementById('dbDate').value, p = parseInt(document.getElementById('dbPcs').value), dn = document.getElementById('dbDesign').value;
+            if(!dt || !p || !dn) return alert('Fill all!');
+            let db = getDaybook(cDBParty.id);
+            db.push({dt, p, dn});
+            saveDaybook(cDBParty.id, db);
             closeModal();
-            loadDaybookEntries();
-            alert('✅ Entry added!');
+            showDaybookTable();
+        }
+        function editDB(i) {
+            const d = getDaybook(cDBParty.id)[i];
+            document.getElementById('dbDate').value = d.dt;
+            document.getElementById('dbPcs').value = d.p;
+            document.getElementById('dbDesign').value = d.dn;
+            cEditCell = {i, type: 'db'};
+            document.getElementById('daybookModal').classList.add('active');
+        }
+        function delDB(i) {
+            if(!confirm('Delete?')) return;
+            let d = getDaybook(cDBParty.id);
+            d.splice(i, 1);
+            saveDaybook(cDBParty.id, d);
+            showDaybookTable();
         }
 
-        function editDaybookEntry(idx) {
-            const entries = getDaybook(currentDaybookParty.id);
-            const entry = entries[idx];
-            document.getElementById('daybookEntryDate').value = entry.date;
-            document.getElementById('daybookEntryPcs').value = entry.pcs;
-            document.getElementById('daybookEntryDesign').value = entry.design;
-            editingCell = { type: 'daybook', index: idx };
-            document.getElementById('addDaybookEntryModal').classList.add('active');
-        }
-
-        function deleteDaybookEntry(idx) {
-            if(!confirm('Delete this entry?')) return;
-            const entries = getDaybook(currentDaybookParty.id);
-            entries.splice(idx, 1);
-            saveDaybook(currentDaybookParty.id, entries);
-            loadDaybookEntries();
-            alert('✅ Entry deleted!');
-        }
-
-        // REMINDER FUNCTIONS
-        function getReminders() {
-            return JSON.parse(localStorage.getItem('reminders') || '[]');
-        }
-
-        function saveReminders(reminders) {
-            localStorage.setItem('reminders', JSON.stringify(reminders));
-        }
-
-        function loadReminders() {
+        // REMINDERS
+        function getReminders() { return JSON.parse(localStorage.getItem('reminders') || '[]'); }
+        function saveReminders(r) { localStorage.setItem('reminders', JSON.stringify(r)); }
+        function loadReminderList() {
             allReminders = getReminders();
+            showReminderList();
+        }
+        function showReminderList() {
             let html = '';
-            allReminders.forEach((reminder, idx) => {
-                const hasVoice = reminder.voice ? '🎤' : '';
-                const icon = reminder.status === 'completed' ? '✅' : '⏳';
-                const priority = reminder.priority === 'urgent' ? '⭐' : '';
-                html += `<div style="background: white; padding: 12px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid ${reminder.status === 'completed' ? '#27ae60' : '#e74c3c'};">
-                    <div style="font-weight: bold; margin-bottom: 5px;">${priority} ${reminder.text} ${hasVoice}</div>
-                    <div style="font-size: 12px; color: #999; margin-bottom: 8px;">Date: ${reminder.date} | ${icon} ${reminder.status}</div>
-                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                        ${reminder.voice ? `<button onclick="playTaskVoice(${idx})" style="padding: 5px 8px; background: #3498db; flex: 1; margin: 0; font-size: 11px;">▶️ Voice</button>` : ''}
-                        ${reminder.status === 'pending' ? `<button onclick="editReminder(${idx})" style="padding: 5px 8px; background: #f39c12; flex: 1; margin: 0; font-size: 11px;">✏️ Edit</button>` : ''}
-                        ${reminder.status === 'pending' ? `<button onclick="markDone(${idx})" style="padding: 5px 8px; background: #27ae60; flex: 1; margin: 0; font-size: 11px;">✓ Done</button>` : ''}
-                        <button onclick="deleteReminder(${idx})" style="padding: 5px 8px; background: #e74c3c; flex: 1; margin: 0; font-size: 11px;">🗑️</button>
+            allReminders.forEach((r, i) => {
+                const v = r.v ? '🎤' : '';
+                const st = r.s === 'completed' ? '✅' : '⏳';
+                const pr = r.pr === 'urgent' ? '⭐' : '';
+                html += `<div style="background:white;padding:12px;border-radius:5px;margin-bottom:10px;border-left:4px solid ${r.s==='completed'?'#27ae60':'#e74c3c'};">
+                    <div style="font-weight:bold;margin-bottom:5px;">${pr} ${r.t} ${v}</div>
+                    <div style="font-size:12px;color:#999;margin-bottom:8px;">Date: ${r.d} | ${st} ${r.s}</div>
+                    <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                        ${r.v?`<button onclick="playVoiceTask(${i})" style="padding:5px 8px;background:#3498db;flex:1;margin:0;font-size:11px;">▶️</button>`:''}
+                        ${r.s==='pending'?`<button onclick="editRem(${i})" style="padding:5px 8px;background:#f39c12;flex:1;margin:0;font-size:11px;">✏️</button>`:''}
+                        ${r.s==='pending'?`<button onclick="markDone(${i})" style="padding:5px 8px;background:#27ae60;flex:1;margin:0;font-size:11px;">✓</button>`:''}
+                        <button onclick="delRem(${i})" style="padding:5px 8px;background:#e74c3c;flex:1;margin:0;font-size:11px;">🗑️</button>
                     </div>
                 </div>`;
             });
-            document.getElementById('remindersList').innerHTML = html || '<p style="text-align: center; color: #999;">No reminders yet</p>';
+            document.getElementById('remindersList').innerHTML = html || '<p style="text-align:center;color:#999;">No reminders</p>';
         }
-
-        function filterReminders() {
-            const search = document.getElementById('reminderSearch').value.toLowerCase();
+        function filterRemStatus(st) {
             let html = '';
-            allReminders.forEach((reminder, idx) => {
-                if(!reminder.text.toLowerCase().includes(search)) return;
-                
-                const hasVoice = reminder.voice ? '🎤' : '';
-                const icon = reminder.status === 'completed' ? '✅' : '⏳';
-                const priority = reminder.priority === 'urgent' ? '⭐' : '';
-                html += `<div style="background: white; padding: 12px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid ${reminder.status === 'completed' ? '#27ae60' : '#e74c3c'};">
-                    <div style="font-weight: bold; margin-bottom: 5px;">${priority} ${reminder.text} ${hasVoice}</div>
-                    <div style="font-size: 12px; color: #999; margin-bottom: 8px;">Date: ${reminder.date} | ${icon} ${reminder.status}</div>
-                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                        ${reminder.voice ? `<button onclick="playTaskVoice(${idx})" style="padding: 5px 8px; background: #3498db; flex: 1; margin: 0; font-size: 11px;">▶️ Voice</button>` : ''}
-                        ${reminder.status === 'pending' ? `<button onclick="editReminder(${idx})" style="padding: 5px 8px; background: #f39c12; flex: 1; margin: 0; font-size: 11px;">✏️ Edit</button>` : ''}
-                        ${reminder.status === 'pending' ? `<button onclick="markDone(${idx})" style="padding: 5px 8px; background: #27ae60; flex: 1; margin: 0; font-size: 11px;">✓ Done</button>` : ''}
-                        <button onclick="deleteReminder(${idx})" style="padding: 5px 8px; background: #e74c3c; flex: 1; margin: 0; font-size: 11px;">🗑️</button>
+            allReminders.forEach((r, i) => {
+                if(st !== 'all' && r.s !== st) return;
+                const v = r.v ? '🎤' : '';
+                const icon = r.s === 'completed' ? '✅' : '⏳';
+                const pr = r.pr === 'urgent' ? '⭐' : '';
+                html += `<div style="background:white;padding:12px;border-radius:5px;margin-bottom:10px;border-left:4px solid ${r.s==='completed'?'#27ae60':'#e74c3c'};">
+                    <div style="font-weight:bold;margin-bottom:5px;">${pr} ${r.t} ${v}</div>
+                    <div style="font-size:12px;color:#999;margin-bottom:8px;">Date: ${r.d} | ${icon} ${r.s}</div>
+                    <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                        ${r.v?`<button onclick="playVoiceTask(${i})" style="padding:5px 8px;background:#3498db;flex:1;margin:0;font-size:11px;">▶️</button>`:''}
+                        ${r.s==='pending'?`<button onclick="editRem(${i})" style="padding:5px 8px;background:#f39c12;flex:1;margin:0;font-size:11px;">✏️</button>`:''}
+                        ${r.s==='pending'?`<button onclick="markDone(${i})" style="padding:5px 8px;background:#27ae60;flex:1;margin:0;font-size:11px;">✓</button>`:''}
+                        <button onclick="delRem(${i})" style="padding:5px 8px;background:#e74c3c;flex:1;margin:0;font-size:11px;">🗑️</button>
                     </div>
                 </div>`;
             });
-            document.getElementById('remindersList').innerHTML = html || '<p style="text-align: center; color: #999;">No matching reminders</p>';
+            document.getElementById('remindersList').innerHTML = html || '<p style="text-align:center;color:#999;">No reminders</p>';
         }
-
-        function filterRemindersByStatus(status) {
-            let html = '';
-            allReminders.forEach((reminder, idx) => {
-                if(status !== 'all' && reminder.status !== status) return;
-                
-                const hasVoice = reminder.voice ? '🎤' : '';
-                const icon = reminder.status === 'completed' ? '✅' : '⏳';
-                const priority = reminder.priority === 'urgent' ? '⭐' : '';
-                html += `<div style="background: white; padding: 12px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid ${reminder.status === 'completed' ? '#27ae60' : '#e74c3c'};">
-                    <div style="font-weight: bold; margin-bottom: 5px;">${priority} ${reminder.text} ${hasVoice}</div>
-                    <div style="font-size: 12px; color: #999; margin-bottom: 8px;">Date: ${reminder.date} | ${icon} ${reminder.status}</div>
-                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                        ${reminder.voice ? `<button onclick="playTaskVoice(${idx})" style="padding: 5px 8px; background: #3498db; flex: 1; margin: 0; font-size: 11px;">▶️ Voice</button>` : ''}
-                        ${reminder.status === 'pending' ? `<button onclick="editReminder(${idx})" style="padding: 5px 8px; background: #f39c12; flex: 1; margin: 0; font-size: 11px;">✏️ Edit</button>` : ''}
-                        ${reminder.status === 'pending' ? `<button onclick="markDone(${idx})" style="padding: 5px 8px; background: #27ae60; flex: 1; margin: 0; font-size: 11px;">✓ Done</button>` : ''}
-                        <button onclick="deleteReminder(${idx})" style="padding: 5px 8px; background: #e74c3c; flex: 1; margin: 0; font-size: 11px;">🗑️</button>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('remindersList').innerHTML = html || '<p style="text-align: center; color: #999;">No reminders</p>';
-        }
-
         function showAddReminderModal() {
-            currentEditingReminderIdx = null;
-            document.getElementById('reminderModalTitle').textContent = 'Add Reminder';
-            document.getElementById('reminderText').value = '';
-            document.getElementById('reminderDate').value = new Date().getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][new Date().getMonth()];
-            document.getElementById('reminderPriority').value = 'normal';
-            reminderVoiceData = null;
+            cEditRemIdx = null;
+            document.getElementById('remTitle').textContent = 'Add Reminder';
+            document.getElementById('remText').value = '';
+            document.getElementById('remDate').value = new Date().getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][new Date().getMonth()];
+            document.getElementById('remPriority').value = 'normal';
+            voiceData = null;
             updateVoiceUI();
-            document.getElementById('addReminderModal').classList.add('active');
+            document.getElementById('reminderModal').classList.add('active');
         }
-
-        function editReminder(idx) {
-            currentEditingReminderIdx = idx;
-            const reminder = allReminders[idx];
-            document.getElementById('reminderModalTitle').textContent = 'Edit Reminder';
-            document.getElementById('reminderText').value = reminder.text;
-            document.getElementById('reminderDate').value = reminder.date;
-            document.getElementById('reminderPriority').value = reminder.priority;
-            reminderVoiceData = reminder.voice || null;
+        function editRem(i) {
+            cEditRemIdx = i;
+            const r = allReminders[i];
+            document.getElementById('remTitle').textContent = 'Edit Reminder';
+            document.getElementById('remText').value = r.t;
+            document.getElementById('remDate').value = r.d;
+            document.getElementById('remPriority').value = r.pr;
+            voiceData = r.v || null;
             updateVoiceUI();
-            document.getElementById('addReminderModal').classList.add('active');
+            document.getElementById('reminderModal').classList.add('active');
         }
-
         function saveReminder() {
-            const text = document.getElementById('reminderText').value;
-            const date = document.getElementById('reminderDate').value;
-            const priority = document.getElementById('reminderPriority').value;
-            
-            if(!text || !date) return alert('Fill all fields!');
-            
-            const reminders = getReminders();
-            const obj = { text, date, priority, voice: reminderVoiceData };
-            
-            if(currentEditingReminderIdx !== null) {
-                reminders[currentEditingReminderIdx] = { ...reminders[currentEditingReminderIdx], ...obj };
+            const t = document.getElementById('remText').value, d = document.getElementById('remDate').value, pr = document.getElementById('remPriority').value;
+            if(!t || !d) return alert('Fill all!');
+            let rem = getReminders();
+            const obj = {t, d, pr, v: voiceData};
+            if(cEditRemIdx !== null) {
+                rem[cEditRemIdx] = {...rem[cEditRemIdx], ...obj};
             } else {
-                obj.status = 'pending';
-                reminders.push(obj);
+                obj.s = 'pending';
+                rem.push(obj);
             }
-            
-            saveReminders(reminders);
+            saveReminders(rem);
             closeModal();
-            loadReminders();
-            alert('✅ Reminder saved!');
+            loadReminderList();
         }
-
-        function markDone(idx) {
-            const reminders = getReminders();
-            reminders[idx].status = 'completed';
-            saveReminders(reminders);
-            loadReminders();
+        function markDone(i) {
+            let r = getReminders();
+            r[i].s = 'completed';
+            saveReminders(r);
+            loadReminderList();
         }
-
-        function deleteReminder(idx) {
-            if(!confirm('Delete this reminder?')) return;
-            const reminders = getReminders();
-            reminders.splice(idx, 1);
-            saveReminders(reminders);
-            loadReminders();
-            alert('✅ Deleted!');
+        function delRem(i) {
+            if(!confirm('Delete?')) return;
+            let r = getReminders();
+            r.splice(i, 1);
+            saveReminders(r);
+            loadReminderList();
         }
-
-        function toggleVoiceRecording() {
-            if(document.getElementById('voiceRecordBtn').textContent.includes('Start')) {
-                startVoiceRecording();
-            } else {
-                stopVoiceRecording();
+        function toggleVoice() {
+            if(document.getElementById('voiceStartBtn').textContent.includes('Start')) startVoice();
+            else stopVoice();
+        }
+        function startVoice() {
+            navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+                mediaRec = new MediaRecorder(stream);
+                const ch = [];
+                mediaRec.ondataavailable = e => ch.push(e.data);
+                mediaRec.onstop = () => {
+                    const bl = new Blob(ch, {type: 'audio/webm'});
+                    const r = new FileReader();
+                    r.onload = () => { voiceData = r.result; updateVoiceUI(); document.getElementById('voiceStatus').textContent = '✅ Recorded!'; };
+                    r.readAsDataURL(bl);
+                };
+                mediaRec.start();
+                document.getElementById('voiceStartBtn').textContent = '⏹️ Stop';
+                document.getElementById('voiceStatus').textContent = '🔴 Recording...';
+            }).catch(() => alert('Mic denied!'));
+        }
+        function stopVoice() {
+            if(mediaRec) {
+                mediaRec.stop();
+                mediaRec.stream.getTracks().forEach(t => t.stop());
+                document.getElementById('voiceStartBtn').textContent = '🎙️ Start Recording';
             }
         }
-
-        function startVoiceRecording() {
-            navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(stream => {
-                    mediaRecorder = new MediaRecorder(stream);
-                    const chunks = [];
-                    mediaRecorder.ondataavailable = e => chunks.push(e.data);
-                    mediaRecorder.onstop = () => {
-                        const blob = new Blob(chunks, { type: 'audio/webm' });
-                        const reader = new FileReader();
-                        reader.onload = () => {
-                            reminderVoiceData = reader.result;
-                            updateVoiceUI();
-                            document.getElementById('voiceStatus').textContent = '✅ Voice recorded!';
-                        };
-                        reader.readAsDataURL(blob);
-                    };
-                    mediaRecorder.start();
-                    document.getElementById('voiceRecordBtn').textContent = '⏹️ Stop Recording';
-                    document.getElementById('voiceStatus').textContent = '🔴 Recording...';
-                })
-                .catch(() => alert('Microphone access denied!'));
-        }
-
-        function stopVoiceRecording() {
-            if(mediaRecorder) {
-                mediaRecorder.stop();
-                mediaRecorder.stream.getTracks().forEach(t => t.stop());
-                document.getElementById('voiceRecordBtn').textContent = '🎙️ Start Recording';
-            }
-        }
-
         function updateVoiceUI() {
-            if(reminderVoiceData) {
+            if(voiceData) {
                 document.getElementById('voicePlayBtn').style.display = 'block';
                 document.getElementById('voiceClearBtn').style.display = 'block';
             } else {
@@ -1130,33 +680,11 @@
                 document.getElementById('voiceClearBtn').style.display = 'none';
             }
         }
+        function playVoice() { if(voiceData) new Audio(voiceData).play(); }
+        function clearVoice() { voiceData = null; updateVoiceUI(); document.getElementById('voiceStatus').textContent = ''; }
+        function playVoiceTask(i) { if(allReminders[i].v) new Audio(allReminders[i].v).play(); }
 
-        function playReminderVoice() {
-            if(reminderVoiceData) new Audio(reminderVoiceData).play();
-        }
-
-        function clearReminderVoice() {
-            reminderVoiceData = null;
-            updateVoiceUI();
-            document.getElementById('voiceStatus').textContent = '';
-        }
-
-        function playTaskVoice(idx) {
-            if(allReminders[idx].voice) new Audio(allReminders[idx].voice).play();
-        }
-
-        // MODAL
-        function closeModal() {
-            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
-        }
-
-        // INIT
-        window.addEventListener('load', () => {
-            loadParties();
-            if('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('./service-worker.js').catch(() => {});
-            }
-        });
+        window.addEventListener('load', () => { loadParties(); if('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(() => {}); });
     </script>
 </body>
 </html>
