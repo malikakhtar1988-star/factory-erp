@@ -137,6 +137,14 @@
             <div id="daybookDetailPage" class="page">
                 <button onclick="goBack()" style="background: #95a5a6; margin-bottom: 10px;">← BACK</button>
                 <div id="daybookPartyName" style="background: white; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 13px; font-weight: bold;"></div>
+                
+                <!-- Day Book Filters -->
+                <div style="background: white; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                    <input type="text" id="daybookFilterDate" placeholder="🔍 Filter by Date (e.g., 5 Mar)" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px; margin-bottom: 8px;">
+                    <input type="number" id="daybookFilterPcs" placeholder="🔍 Filter by PCS" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px; margin-bottom: 8px;">
+                    <input type="text" id="daybookFilterDesign" placeholder="🔍 Filter by Design Name" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                </div>
+                
                 <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 5px; overflow: hidden; margin-bottom: 15px;">
                     <tr style="background: #34495e; color: white;">
                         <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">DATE</th>
@@ -149,6 +157,28 @@
                 </table>
                 <button onclick="showAddDaybookEntryModal()" style="margin-top: 10px;">➕ ADD ENTRY</button>
             </div>
+
+            <!-- REMINDER PAGE -->
+            <div id="reminderPage" class="page">
+                <div class="title-section">📌 REMINDERS & TASKS</div>
+                
+                <!-- Search & Filter -->
+                <div style="background: white; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                    <input type="text" id="reminderSearch" placeholder="🔍 Search reminders..." onkeyup="filterReminders()" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px;">
+                    
+                    <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                        <button onclick="filterRemindersByStatus('all')" style="flex: 1; padding: 8px; background: #3498db; margin: 0;">All</button>
+                        <button onclick="filterRemindersByStatus('pending')" style="flex: 1; padding: 8px; background: #e74c3c; margin: 0;">⏳ Pending</button>
+                        <button onclick="filterRemindersByStatus('completed')" style="flex: 1; padding: 8px; background: #27ae60; margin: 0;">✅ Done</button>
+                    </div>
+                </div>
+                
+                <!-- Reminders List -->
+                <div id="remindersList"></div>
+                
+                <!-- Add Button -->
+                <button onclick="showAddReminderModal()" style="margin-top: 10px;">➕ ADD NEW REMINDER</button>
+            </div>
         </div>
 
         <div class="bottom-nav">
@@ -156,6 +186,7 @@
             <button class="nav-btn" onclick="showPage('chat')">💬</button>
             <button class="nav-btn" onclick="showPage('register')">📋</button>
             <button class="nav-btn" onclick="showPage('daybook')">📖</button>
+            <button class="nav-btn" onclick="showPage('reminder')">📌</button>
         </div>
     </div>
 
@@ -332,6 +363,44 @@
         </div>
     </div>
 
+    <!-- ADD REMINDER MODAL -->
+    <div id="addReminderModal" class="modal">
+        <div class="modal-content">
+            <h2 id="reminderModalTitle">Add Reminder / Task</h2>
+            <div class="form-group">
+                <label>Task Description:</label>
+                <textarea id="reminderText" placeholder="e.g., Call Adnan Bhai about payment" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; height: 80px; resize: vertical;"></textarea>
+            </div>
+            
+            <!-- Voice Recording Section -->
+            <div class="form-group">
+                <label>🎤 Voice Note (Optional):</label>
+                <div style="display: flex; gap: 5px;">
+                    <button type="button" id="voiceRecordBtn" onclick="toggleVoiceRecording()" style="flex: 1; background: #e74c3c; padding: 10px; margin: 0;">🎙️ Start Recording</button>
+                    <button type="button" id="voicePlayBtn" onclick="playReminderVoice()" style="flex: 1; background: #27ae60; padding: 10px; margin: 0; display: none;">▶️ Play Voice</button>
+                    <button type="button" id="voiceClearBtn" onclick="clearReminderVoice()" style="flex: 1; background: #95a5a6; padding: 10px; margin: 0; display: none;">✕ Clear</button>
+                </div>
+                <div id="voiceStatus" style="font-size: 12px; color: #999; margin-top: 5px; text-align: center;"></div>
+            </div>
+            
+            <div class="form-group">
+                <label>Date:</label>
+                <input type="text" id="reminderDate" placeholder="e.g., 7 Mar">
+            </div>
+            <div class="form-group">
+                <label>Priority:</label>
+                <select id="reminderPriority" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    <option value="normal">Normal</option>
+                    <option value="urgent">⭐ Urgent</option>
+                </select>
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveReminder()">Save</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ✅ NO FIREBASE - Using localStorage for instant, error-free operation!
         
@@ -360,6 +429,10 @@
                 document.getElementById('daybookPage').classList.add('active');
                 document.querySelector('.nav-btn:nth-child(4)').classList.add('active');
                 loadDaybookParties();
+            } else if(page === 'reminder') {
+                document.getElementById('reminderPage').classList.add('active');
+                document.querySelector('.nav-btn:nth-child(5)').classList.add('active');
+                loadReminders();
             }
         }
 
@@ -1047,7 +1120,15 @@
 
         function loadDaybookEntries(partyId) {
             const entries = getDaybookEntries(partyId);
+            displayDaybookEntries(entries, partyId);
             
+            // Add filter event listeners
+            document.getElementById('daybookFilterDate').onkeyup = () => filterDaybookEntries(partyId);
+            document.getElementById('daybookFilterPcs').onkeyup = () => filterDaybookEntries(partyId);
+            document.getElementById('daybookFilterDesign').onkeyup = () => filterDaybookEntries(partyId);
+        }
+
+        function displayDaybookEntries(entries, partyId) {
             let html = '';
             entries.forEach((entry, idx) => {
                 html += `
@@ -1066,6 +1147,22 @@
             });
             
             document.getElementById('daybookTableBody').innerHTML = html;
+        }
+
+        function filterDaybookEntries(partyId) {
+            const entries = getDaybookEntries(partyId);
+            const dateFilter = document.getElementById('daybookFilterDate').value.toLowerCase();
+            const pcsFilter = document.getElementById('daybookFilterPcs').value;
+            const designFilter = document.getElementById('daybookFilterDesign').value.toLowerCase();
+            
+            const filtered = entries.filter(entry => {
+                const matchDate = !dateFilter || entry.date.toLowerCase().includes(dateFilter);
+                const matchPcs = !pcsFilter || entry.pcs.toString() === pcsFilter;
+                const matchDesign = !designFilter || entry.design.toLowerCase().includes(designFilter);
+                return matchDate && matchPcs && matchDesign;
+            });
+            
+            displayDaybookEntries(filtered, partyId);
         }
 
         function getDaybookEntries(partyId) {
@@ -1128,6 +1225,283 @@
             saveDaybookEntries(currentDaybookPartyId, entries);
             loadDaybookEntries(currentDaybookPartyId);
             alert('✅ Entry deleted!');
+        }
+
+        // REMINDER FUNCTIONS
+        function getReminders() {
+            return JSON.parse(localStorage.getItem('reminders') || '[]');
+        }
+
+        function saveReminders(reminders) {
+            localStorage.setItem('reminders', JSON.stringify(reminders));
+        }
+
+        function loadReminders() {
+            const reminders = getReminders();
+            let html = '';
+            
+            if(reminders.length === 0) {
+                html = '<p style="text-align: center; color: #999; padding: 20px;">No reminders yet</p>';
+            } else {
+                reminders.forEach((reminder, idx) => {
+                    const statusIcon = reminder.status === 'completed' ? '✅' : '⏳';
+                    const priorityIcon = reminder.priority === 'urgent' ? '⭐' : '';
+                    const hasVoice = reminder.voice ? '🎤' : '';
+                    html += `
+                        <div style="background: white; padding: 12px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid ${reminder.status === 'completed' ? '#27ae60' : '#e74c3c'};">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: bold; margin-bottom: 3px;">${priorityIcon} ${reminder.text} ${hasVoice}</div>
+                                    <div style="font-size: 12px; color: #999;">Date: ${reminder.date} | Status: ${statusIcon} ${reminder.status}</div>
+                                </div>
+                                <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                    ${reminder.voice ? `<button onclick="playTaskVoice(${idx})" style="padding: 5px 8px; background: #3498db; width: auto; margin: 0; font-size: 11px;">▶️ Voice</button>` : ''}
+                                    ${reminder.status === 'completed' ? '' : `<button onclick="editReminder(${idx})" style="padding: 5px 8px; background: #f39c12; width: auto; margin: 0; font-size: 11px;">✏️ Edit</button>`}
+                                    ${reminder.status === 'completed' ? '' : `<button onclick="markReminderDone(${idx})" style="padding: 5px 8px; background: #27ae60; width: auto; margin: 0; font-size: 11px;">✓ Done</button>`}
+                                    <button onclick="deleteReminder(${idx})" style="padding: 5px 8px; background: #e74c3c; width: auto; margin: 0; font-size: 11px;">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            document.getElementById('remindersList').innerHTML = html;
+        }
+
+        function showAddReminderModal() {
+            currentEditingReminderIdx = null;
+            document.getElementById('reminderModalTitle').textContent = 'Add Reminder / Task';
+            const today = new Date();
+            const date = today.getDate() + ' ' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][today.getMonth()];
+            
+            document.getElementById('reminderText').value = '';
+            document.getElementById('reminderDate').value = date;
+            document.getElementById('reminderPriority').value = 'normal';
+            reminderVoiceData = null;
+            updateVoiceButtonUI();
+            document.getElementById('addReminderModal').classList.add('active');
+        }
+
+        function editReminder(idx) {
+            const reminders = getReminders();
+            const reminder = reminders[idx];
+            
+            currentEditingReminderIdx = idx;
+            document.getElementById('reminderModalTitle').textContent = 'Edit Reminder / Task';
+            document.getElementById('reminderText').value = reminder.text;
+            document.getElementById('reminderDate').value = reminder.date;
+            document.getElementById('reminderPriority').value = reminder.priority;
+            reminderVoiceData = reminder.voice || null;
+            updateVoiceButtonUI();
+            document.getElementById('addReminderModal').classList.add('active');
+        }
+
+        // Voice Recording Variables
+        let mediaRecorder;
+        let reminderVoiceData = null;
+        let currentEditingReminderIdx = null;
+
+        function toggleVoiceRecording() {
+            const btn = document.getElementById('voiceRecordBtn');
+            
+            if(btn.textContent.includes('Start')) {
+                startVoiceRecording();
+            } else {
+                stopVoiceRecording();
+            }
+        }
+
+        function startVoiceRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    const chunks = [];
+                    
+                    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                    
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(chunks, { type: 'audio/webm' });
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            reminderVoiceData = reader.result;
+                            updateVoiceButtonUI();
+                            document.getElementById('voiceStatus').textContent = '✅ Voice recorded!';
+                        };
+                        reader.readAsDataURL(blob);
+                    };
+                    
+                    mediaRecorder.start();
+                    document.getElementById('voiceRecordBtn').textContent = '⏹️ Stop Recording';
+                    document.getElementById('voiceStatus').textContent = '🔴 Recording...';
+                })
+                .catch(err => {
+                    alert('Microphone access denied!');
+                });
+        }
+
+        function stopVoiceRecording() {
+            if(mediaRecorder) {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                document.getElementById('voiceRecordBtn').textContent = '🎙️ Start Recording';
+            }
+        }
+
+        function updateVoiceButtonUI() {
+            const playBtn = document.getElementById('voicePlayBtn');
+            const clearBtn = document.getElementById('voiceClearBtn');
+            
+            if(reminderVoiceData) {
+                playBtn.style.display = 'block';
+                clearBtn.style.display = 'block';
+            } else {
+                playBtn.style.display = 'none';
+                clearBtn.style.display = 'none';
+            }
+        }
+
+        function playReminderVoice() {
+            if(reminderVoiceData) {
+                const audio = new Audio(reminderVoiceData);
+                audio.play();
+            }
+        }
+
+        function clearReminderVoice() {
+            reminderVoiceData = null;
+            updateVoiceButtonUI();
+            document.getElementById('voiceStatus').textContent = '';
+        }
+
+        function playTaskVoice(idx) {
+            const reminders = getReminders();
+            if(reminders[idx].voice) {
+                const audio = new Audio(reminders[idx].voice);
+                audio.play();
+            }
+        }
+
+        function saveReminder() {
+            const text = document.getElementById('reminderText').value;
+            const date = document.getElementById('reminderDate').value;
+            const priority = document.getElementById('reminderPriority').value;
+            
+            if(!text || !date) return alert('Fill all fields!');
+            
+            const reminders = getReminders();
+            const reminderObj = {
+                text: text,
+                date: date,
+                priority: priority,
+                voice: reminderVoiceData || null
+            };
+            
+            if(currentEditingReminderIdx !== null) {
+                // Edit existing reminder
+                reminders[currentEditingReminderIdx] = {
+                    ...reminders[currentEditingReminderIdx],
+                    ...reminderObj
+                };
+            } else {
+                // Add new reminder
+                reminderObj.status = 'pending';
+                reminders.push(reminderObj);
+            }
+            
+            saveReminders(reminders);
+            closeModal();
+            loadReminders();
+            alert('✅ Reminder saved!');
+        }
+
+        function markReminderDone(idx) {
+            const reminders = getReminders();
+            reminders[idx].status = 'completed';
+            saveReminders(reminders);
+            loadReminders();
+        }
+
+        function deleteReminder(idx) {
+            if(!confirm('Delete this reminder?')) return;
+            const reminders = getReminders();
+            reminders.splice(idx, 1);
+            saveReminders(reminders);
+            loadReminders();
+            alert('✅ Reminder deleted!');
+        }
+
+        function filterReminders() {
+            const searchText = document.getElementById('reminderSearch').value.toLowerCase();
+            const reminders = getReminders();
+            let html = '';
+            
+            const filtered = reminders.filter(r => r.text.toLowerCase().includes(searchText));
+            
+            if(filtered.length === 0) {
+                html = '<p style="text-align: center; color: #999; padding: 20px;">No matching reminders</p>';
+            } else {
+                filtered.forEach((reminder, idx) => {
+                    const actualIdx = reminders.indexOf(reminder);
+                    const statusIcon = reminder.status === 'completed' ? '✅' : '⏳';
+                    const priorityIcon = reminder.priority === 'urgent' ? '⭐' : '';
+                    const hasVoice = reminder.voice ? '🎤' : '';
+                    html += `
+                        <div style="background: white; padding: 12px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid ${reminder.status === 'completed' ? '#27ae60' : '#e74c3c'};">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: bold; margin-bottom: 3px;">${priorityIcon} ${reminder.text} ${hasVoice}</div>
+                                    <div style="font-size: 12px; color: #999;">Date: ${reminder.date} | Status: ${statusIcon} ${reminder.status}</div>
+                                </div>
+                                <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                    ${reminder.voice ? `<button onclick="playTaskVoice(${actualIdx})" style="padding: 5px 8px; background: #3498db; width: auto; margin: 0; font-size: 11px;">▶️ Voice</button>` : ''}
+                                    ${reminder.status === 'completed' ? '' : `<button onclick="editReminder(${actualIdx})" style="padding: 5px 8px; background: #f39c12; width: auto; margin: 0; font-size: 11px;">✏️ Edit</button>`}
+                                    ${reminder.status === 'completed' ? '' : `<button onclick="markReminderDone(${actualIdx})" style="padding: 5px 8px; background: #27ae60; width: auto; margin: 0; font-size: 11px;">✓ Done</button>`}
+                                    <button onclick="deleteReminder(${actualIdx})" style="padding: 5px 8px; background: #e74c3c; width: auto; margin: 0; font-size: 11px;">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            document.getElementById('remindersList').innerHTML = html;
+        }
+
+        function filterRemindersByStatus(status) {
+            const reminders = getReminders();
+            let html = '';
+            
+            const filtered = status === 'all' ? reminders : reminders.filter(r => r.status === status);
+            
+            if(filtered.length === 0) {
+                html = `<p style="text-align: center; color: #999; padding: 20px;">No ${status} reminders</p>`;
+            } else {
+                filtered.forEach((reminder, idx) => {
+                    const actualIdx = reminders.indexOf(reminder);
+                    const statusIcon = reminder.status === 'completed' ? '✅' : '⏳';
+                    const priorityIcon = reminder.priority === 'urgent' ? '⭐' : '';
+                    const hasVoice = reminder.voice ? '🎤' : '';
+                    html += `
+                        <div style="background: white; padding: 12px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid ${reminder.status === 'completed' ? '#27ae60' : '#e74c3c'};">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: bold; margin-bottom: 3px;">${priorityIcon} ${reminder.text} ${hasVoice}</div>
+                                    <div style="font-size: 12px; color: #999;">Date: ${reminder.date} | Status: ${statusIcon} ${reminder.status}</div>
+                                </div>
+                                <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                    ${reminder.voice ? `<button onclick="playTaskVoice(${actualIdx})" style="padding: 5px 8px; background: #3498db; width: auto; margin: 0; font-size: 11px;">▶️ Voice</button>` : ''}
+                                    ${reminder.status === 'completed' ? '' : `<button onclick="editReminder(${actualIdx})" style="padding: 5px 8px; background: #f39c12; width: auto; margin: 0; font-size: 11px;">✏️ Edit</button>`}
+                                    ${reminder.status === 'completed' ? '' : `<button onclick="markReminderDone(${actualIdx})" style="padding: 5px 8px; background: #27ae60; width: auto; margin: 0; font-size: 11px;">✓ Done</button>`}
+                                    <button onclick="deleteReminder(${actualIdx})" style="padding: 5px 8px; background: #e74c3c; width: auto; margin: 0; font-size: 11px;">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            document.getElementById('remindersList').innerHTML = html;
         }
 
         // Initial load
