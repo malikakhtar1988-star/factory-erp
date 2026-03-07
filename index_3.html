@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factory ERP System</title>
+    <link rel="manifest" href="./manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { height: 100vh; display: flex; flex-direction: column; }
+        header { background: #2c3e50; color: white; padding: 15px; text-align: center; }
+        .content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .item { background: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; }
+        .item-title { font-weight: bold; font-size: 15px; }
+        button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px; font-weight: bold; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; border-top: 1px solid #ddd; padding: 5px 0; z-index: 100; }
+        .nav-btn { flex: 1; padding: 12px; background: none; border: none; cursor: pointer; font-size: 22px; }
+        .nav-btn.active { background: #f0f0f0; }
+        table { width: 100%; border-collapse: collapse; background: white; margin: 10px 0; }
+        th, td { padding: 8px; text-align: center; border: 1px solid #ddd; font-size: 12px; }
+        th { background: #34495e; color: white; }
+        .editable { cursor: pointer; background: #fffacd; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 90%; max-height: 90vh; overflow-y: auto; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .form-buttons { display: flex; gap: 10px; margin-top: 15px; }
+        .form-buttons button { flex: 1; margin: 0; }
+        .filter-box { background: white; padding: 12px; border-radius: 5px; margin-bottom: 12px; border: 2px solid #3498db; }
+        .filter-box input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 3px; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header><h1>📋 Factory ERP System</h1></header>
+        <div class="content">
+            <div id="homePage" class="page active">
+                <div style="font-weight:bold;margin-bottom:10px;">🏠 PARTIES</div>
+                <div id="partiesList"></div>
+                <button onclick="showAddPartyModal()">➕ ADD PARTY</button>
+            </div>
+
+            <div id="designsPage" class="page">
+                <button onclick="goBack()" style="background:#95a5a6;margin-bottom:10px;">← BACK</button>
+                <div style="font-weight:bold;margin-bottom:10px;" id="designsTitle"></div>
+                <div id="designsList"></div>
+                <button onclick="showAddDesignModal()">➕ ADD DESIGN</button>
+            </div>
+
+            <div id="sheetPage" class="page">
+                <button onclick="goBack()" style="background:#95a5a6;margin-bottom:10px;">← BACK</button>
+                <div style="font-weight:bold;margin-bottom:10px;" id="sheetTitle"></div>
+                <div class="filter-box">
+                    <div style="font-weight:bold;margin-bottom:8px;">🔍 FILTERS:</div>
+                    <input type="text" id="tailorFilter" placeholder="Filter by Tailor Name" onkeyup="showSheetTable()">
+                    <input type="text" id="sizeFilter" placeholder="Filter by Size" onkeyup="showSheetTable()">
+                </div>
+                <div id="sheetTableDiv"></div>
+                <button onclick="showAddDateModal()">📅 ADD NEW DATE</button>
+            </div>
+
+            <div id="chatPage" class="page">
+                <div style="font-weight:bold;margin-bottom:10px;">💬 GROUPS</div>
+                <div id="groupsList"></div>
+                <button onclick="showAddGroupModal()">➕ NEW GROUP</button>
+            </div>
+
+            <div id="chatDetailPage" class="page">
+                <button onclick="goBack()" style="background:#95a5a6;margin-bottom:10px;">← BACK</button>
+                <div id="messagesList" style="height:300px;overflow-y:auto;background:white;padding:10px;border-radius:5px;margin-bottom:10px;"></div>
+                <div style="display:flex;gap:10px;">
+                    <input type="text" id="messageInput" placeholder="Type message..." style="flex:1;padding:10px;border:1px solid #ddd;border-radius:5px;">
+                    <button onclick="sendMessage()" style="width:auto;margin:0;">Send</button>
+                </div>
+            </div>
+
+            <div id="registerPage" class="page">
+                <div style="font-weight:bold;margin-bottom:10px;">📋 REGISTER - SELECT PARTY</div>
+                <div id="registerList"></div>
+            </div>
+
+            <div id="registerDetailPage" class="page">
+                <button onclick="goBack()" style="background:#95a5a6;margin-bottom:10px;">← BACK</button>
+                <div style="font-weight:bold;margin-bottom:10px;" id="registerTitle"></div>
+                <div class="filter-box">
+                    <input type="text" id="regDateFilter" placeholder="Filter by Date" onkeyup="showRegisterTable()">
+                    <input type="number" id="regDispatchFilter" placeholder="Filter by Dispatch" onkeyup="showRegisterTable()">
+                </div>
+                <table><tr><th>DATE</th><th>DISPATCH</th><th>TYPE</th><th>RETURN</th><th>EDIT</th><th>DEL</th></tr><tbody id="regTableBody"></tbody></table>
+                <button onclick="showAddRegisterModal()">➕ ADD ENTRY</button>
+            </div>
+
+            <div id="daybookPage" class="page">
+                <div style="font-weight:bold;margin-bottom:10px;">📖 DAY BOOK - SELECT PARTY</div>
+                <div id="daybookList"></div>
+            </div>
+
+            <div id="daybookDetailPage" class="page">
+                <button onclick="goBack()" style="background:#95a5a6;margin-bottom:10px;">← BACK</button>
+                <div style="font-weight:bold;margin-bottom:10px;" id="daybookTitle"></div>
+                <div class="filter-box">
+                    <input type="text" id="dbDateFilter" placeholder="Filter by Date" onkeyup="showDaybookTable()">
+                    <input type="number" id="dbPcsFilter" placeholder="Filter by PCS" onkeyup="showDaybookTable()">
+                    <input type="text" id="dbDesignFilter" placeholder="Filter by Design" onkeyup="showDaybookTable()">
+                </div>
+                <table><tr><th>DATE</th><th>PCS</th><th>DESIGN</th><th>EDIT</th><th>DEL</th></tr><tbody id="dbTableBody"></tbody></table>
+                <button onclick="showAddDaybookModal()">➕ ADD ENTRY</button>
+            </div>
+
+            <div id="reminderPage" class="page">
+                <div style="font-weight:bold;margin-bottom:10px;">📌 REMINDERS</div>
+                <div class="filter-box">
+                    <input type="text" id="remSearchInput" placeholder="Search tasks..." onkeyup="showReminderList()">
+                    <div style="display:flex;gap:5px;">
+                        <button onclick="filterRemStatus('all')" style="font-size:12px;">All</button>
+                        <button onclick="filterRemStatus('pending')" style="background:#e74c3c;font-size:12px;">Pending</button>
+                        <button onclick="filterRemStatus('completed')" style="background:#27ae60;font-size:12px;">Done</button>
+                    </div>
+                </div>
+                <div id="remindersList"></div>
+                <button onclick="showAddReminderModal()">➕ ADD REMINDER</button>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <button class="nav-btn active" onclick="switchPage('home')">🏠</button>
+            <button class="nav-btn" onclick="switchPage('chat')">💬</button>
+            <button class="nav-btn" onclick="switchPage('register')">📋</button>
+            <button class="nav-btn" onclick="switchPage('daybook')">📖</button>
+            <button class="nav-btn" onclick="switchPage('reminder')">📌</button>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div id="partyModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Party</h2>
+            <div class="form-group">
+                <label>Party Name:</label>
+                <input type="text" id="partyName" placeholder="e.g., Anas Arkas Fabrics">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveParty()">Save</button>
+                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="designModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Design</h2>
+            <div class="form-group">
+                <label>Design Name:</label>
+                <input type="text" id="designName" placeholder="e.g., Paan Black">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveDesign()">Save</button>
+                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dateModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Date</h2>
+            <div class="form-group">
+                <label>Date (e.g., 5 Mar):</label>
+                <input type="text" id="dateVal" placeholder="5 Mar">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveDate()">Save</button>
+                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cellModal" class="modal">
+        <div class="modal-content">
+            <h2 id="cellLabel">Edit</h2>
+            <div class="form-group">
+                <input type="text" id="cellVal" placeholder="Value">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveCell()">Save</button>
+                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="groupModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Group</h2>
+            <div class="form-group">
+                <label>Group Name:</label>
+                <input type="text" id="groupName" placeholder="e.g., Tailors">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveGroup()">Save</button>
+                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Register Entry</h2>
+            <div class="form-group"><label>Date:</label><input type="text" id="regDate" placeholder="5 Mar"></div>
+            <div class="form-group"><label>Dispatch:</label><input type="number" id="regDispatch" placeholder="50"></div>
+            <div class="form-group"><label>Type:</label><select id="regType"><option>PCS</option><option>SET</option><option>CORD SET</option></select></div>
+            <div class="form-group"><label>Return:</label><input type="number" id="regReturn" placeholder="0"></div>
+            <div class="form-buttons">
+                <button onclick="saveRegisterEntry()">Save</button>
+                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="daybookModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Daybook Entry</h2>
+            <div class="form-group"><label>Date:</label><input type="text" id="dbDate" placeholder="5 Mar"></div>
+            <div class="form-group"><label>PCS:</label><input type="number" id="dbPcs" placeholder="50"></div>
+            <div class="form-group"><label>Design:</label><input type="text" id="dbDesign" placeholder="Paan Black"></div>
+            <div class="form-buttons">
+                <button onclick="saveDaybookEntry()">Save</button>
+                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reminderModal" class="modal">
+        <div class="modal-content">
+            <h2 id="remTitle">Add Reminder</h2>
+            <div class="form-group"><label>Task:</label><textarea id="remText" placeholder="What to do?" style="height:80px;"></textarea></div>
+            <div class="form-group">
+                <label>🎤 Voice Note:</label>
+                <button type="button" id="voiceStartBtn" onclick="toggleVoice()" style="background:#e74c3c;">🎙️ Start Recording</button>
+                <button type="button" id="voicePlayBtn" onclick="playVoice()" style="background:#27ae60;display:none;">▶️ Play</button>
+                <button type="button" id="voiceClearBtn" onclick="clearVoice()" style="background:#95a5a6;display:none;">✕ Clear</button>
+                <div id="voiceStatus" style="font-size:11px;color:#999;margin-top:5px;"></div>
+            </div>
+            <div class="form-group"><label>Date:</label><input type="text" id="remDate" placeholder="7 Mar"></div>
+            <div class="form-group"><label>Priority:</label><select id="remPriority"><option value="normal">Normal</option><option value="urgent">⭐ Urgent</option></select></div>
+            <div class="form-buttons">
+                <button onclick="saveReminder()">Save</button>
+                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cParty = null, cDesign = null, cRegParty = null, cDBParty = null, cGroup = null;
+        let cEditCell = null, cEditRemIdx = null, voiceData = null, mediaRec = null;
+        let allReminders = [];
+
+        function switchPage(p) {
+            document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
+            document.getElementById(p + 'Page').classList.add('active');
+            const idx = p === 'home' ? 0 : p === 'chat' ? 1 : p === 'register' ? 2 : p === 'daybook' ? 3 : 4;
+            document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+            if(p === 'home') loadParties();
+            else if(p === 'chat') loadGroups();
+            else if(p === 'register') loadRegisterParties();
+            else if(p === 'daybook') loadDaybookParties();
+            else if(p === 'reminder') loadReminderList();
+        }
+
+        function goBack() {
+            if(cDesign) {
+                cDesign = null;
+                document.getElementById('sheetPage').classList.remove('active');
+                document.getElementById('designsPage').classList.add('active');
+            } else if(cRegParty) {
+                cRegParty = null;
+                document.getElementById('registerDetailPage').classList.remove('active');
+                document.getElementById('registerPage').classList.add('active');
+                loadRegisterParties();
+            } else if(cDBParty) {
+                cDBParty = null;
+                document.getElementById('daybookDetailPage').classList.remove('active');
+                document.getElementById('daybookPage').classList.add('active');
+                loadDaybookParties();
+            } else if(cGroup) {
+                cGroup = null;
+                document.getElementById('chatDetailPage').classList.remove('active');
+                document.getElementById('chatPage').classList.add('active');
+                loadGroups();
+            } else {
+                cParty = null;
+                document.getElementById('designsPage').classList.remove('active');
+                document.getElementById('homePage').classList.add('active');
+            }
+        }
+
+        function closeModal() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
+
+        // PARTIES
+        function getParties() { return JSON.parse(localStorage.getItem('parties') || '[]'); }
+        function saveParties(p) { localStorage.setItem('parties', JSON.stringify(p)); }
+        function loadParties() {
+            let html = '';
+            getParties().forEach(p => html += `<div class="item" onclick="openParty('${p.id}','${p.name}')"><div class="item-title">📦 ${p.name}</div></div>`);
+            document.getElementById('partiesList').innerHTML = html || '<p style="text-align:center;color:#999;">No parties</p>';
+        }
+        function showAddPartyModal() { document.getElementById('partyName').value = ''; document.getElementById('partyModal').classList.add('active'); }
+        function saveParty() {
+            const n = document.getElementById('partyName').value;
+            if(!n) return alert('Enter name!');
+            let p = getParties();
+            p.push({id: Date.now(), name: n});
+            saveParties(p);
+            closeModal();
+            loadParties();
+        }
+        function openParty(id, n) {
+            cParty = {id, name: n};
+            document.getElementById('homePage').classList.remove('active');
+            document.getElementById('designsPage').classList.add('active');
+            document.getElementById('designsTitle').textContent = `🎨 ${n}`;
+            loadDesigns();
+        }
+
+        // DESIGNS
+        function getDesigns(pid) { return JSON.parse(localStorage.getItem(`des_${pid}`) || '[]'); }
+        function saveDesigns(pid, d) { localStorage.setItem(`des_${pid}`, JSON.stringify(d)); }
+        function loadDesigns() {
+            let html = '';
+            getDesigns(cParty.id).forEach(d => html += `<div class="item" onclick="openDesign('${d.id}','${d.name}')"><div class="item-title">🎨 ${d.name}</div></div>`);
+            document.getElementById('designsList').innerHTML = html || '<p style="text-align:center;color:#999;">No designs</p>';
+        }
+        function showAddDesignModal() { document.getElementById('designName').value = ''; document.getElementById('designModal').classList.add('active'); }
+        function saveDesign() {
+            const n = document.getElementById('designName').value;
+            if(!n) return alert('Enter name!');
+            let d = getDesigns(cParty.id);
+            d.push({id: Date.now(), name: n});
+            saveDesigns(cParty.id, d);
+            closeModal();
+            loadDesigns();
+        }
+        function openDesign(id, n) {
+            cDesign = {id, name: n};
+            document.getElementById('designsPage').classList.remove('active');
+            document.getElementById('sheetPage').classList.add('active');
+            document.getElementById('sheetTitle').textContent = `${cParty.name} | 🎨 ${n}`;
+            showSheetTable();
+        }
+
+        // SHEET
+        function getSheet(pid, did) {
+            const k = `sheet_${pid}_${did}`;
+            return JSON.parse(localStorage.getItem(k) || '{"dates":[],"sizes":["XXS","XS","S","M","L","XL","2XL","3XL"],"data":{}}');
+        }
+        function saveSheet(pid, did, s) { localStorage.setItem(`sheet_${pid}_${did}`, JSON.stringify(s)); }
+        function showSheetTable() {
+            const s = getSheet(cParty.id, cDesign.id);
+            const tf = document.getElementById('tailorFilter').value.toLowerCase();
+            const sf = document.getElementById('sizeFilter').value.toUpperCase();
+            let html = '<table><tr><th>TAILOR</th><th>SIZE</th><th>KATE</th><th>SILE</th><th>PEND</th>';
+            s.dates.forEach(d => html += `<th>${d}</th>`);
+            html += '</tr>';
+            s.sizes.forEach(sz => {
+                if(sf && !sz.includes(sf)) return;
+                const t = s.data[`${sz}_tailor`] || '-';
+                if(tf && !t.toLowerCase().includes(tf)) return;
+                const k = parseInt(s.data[`${sz}_kate`]) || 50;
+                const si = parseInt(s.data[`${sz}_sile`]) || 0;
+                const p = k - si;
+                html += `<tr><td class="editable" onclick="openCellEditor('${sz}','tailor')">${t}</td><td>${sz}</td><td class="editable" onclick="openCellEditor('${sz}','kate')">${k}</td><td class="editable" onclick="openCellEditor('${sz}','sile')">${si}</td><td>${p}</td>`;
+                s.dates.forEach(d => {
+                    const v = s.data[`${sz}_${d}`] || '-';
+                    html += `<td class="editable" onclick="openCellEditor('${sz}','${d}')">${v}</td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</table>';
+            document.getElementById('sheetTableDiv').innerHTML = html;
+        }
+        function openCellEditor(sz, f) { cEditCell = {sz, f}; document.getElementById('cellLabel').textContent = `${sz} - ${f}`; document.getElementById('cellVal').value = ''; document.getElementById('cellModal').classList.add('active'); }
+        function saveCell() {
+            const v = document.getElementById('cellVal').value || '-';
+            const s = getSheet(cParty.id, cDesign.id);
+            s.data[`${cEditCell.sz}_${cEditCell.f}`] = v;
+            saveSheet(cParty.id, cDesign.id, s);
+            closeModal();
+            showSheetTable();
+        }
+        function showAddDateModal() { document.getElementById('dateVal').value = ''; document.getElementById('dateModal').classList.add('active'); }
+        function saveDate() {
+            const d = document.getElementById('dateVal').value;
+            if(!d) return alert('Enter date!');
+            const s = getSheet(cParty.id, cDesign.id);
+            if(!s.dates.includes(d)) s.dates.push(d);
+            saveSheet(cParty.id, cDesign.id, s);
+            closeModal();
+            showSheetTable();
+        }
+
+        // CHAT
+        function getGroups() { return JSON.parse(localStorage.getItem('groups') || '[]'); }
+        function saveGroups(g) { localStorage.setItem('groups', JSON.stringify(g)); }
+        function loadGroups() {
+            let html = '';
+            getGroups().forEach(g => html += `<div class="item" onclick="openGroup('${g.id}','${g.name}')"><div class="item-title">💬 ${g.name}</div></div>`);
+            document.getElementById('groupsList').innerHTML = html || '<p style="text-align:center;color:#999;">No groups</p>';
+        }
+        function showAddGroupModal() { document.getElementById('groupName').value = ''; document.getElementById('groupModal').classList.add('active'); }
+        function saveGroup() {
+            const n = document.getElementById('groupName').value;
+            if(!n) return alert('Enter name!');
+            let g = getGroups();
+            g.push({id: Date.now(), name: n, msgs: []});
+            saveGroups(g);
+            closeModal();
+            loadGroups();
+        }
+        function openGroup(id, n) {
+            cGroup = {id, name: n};
+            document.getElementById('chatPage').classList.remove('active');
+            document.getElementById('chatDetailPage').classList.add('active');
+            loadMessages();
+        }
+        function sendMessage() {
+            const t = document.getElementById('messageInput').value;
+            if(!t) return;
+            const g = getGroups().find(x => x.id == cGroup.id);
+            if(!g.msgs) g.msgs = [];
+            g.msgs.push({t, time: new Date().toLocaleString()});
+            saveGroups(getGroups());
+            document.getElementById('messageInput').value = '';
+            loadMessages();
+        }
+        function loadMessages() {
+            const g = getGroups().find(x => x.id == cGroup.id);
+            let html = '';
+            if(g && g.msgs) g.msgs.forEach(m => html += `<div style="background:#e8f4f8;padding:10px;border-radius:5px;margin-bottom:8px;"><strong>${m.t}</strong><br><small>${m.time}</small></div>`);
+            document.getElementById('messagesList').innerHTML = html;
+        }
+
+        // REGISTER
+        function getRegister(pid) { return JSON.parse(localStorage.getItem(`reg_${pid}`) || '[]'); }
+        function saveRegister(pid, r) { localStorage.setItem(`reg_${pid}`, JSON.stringify(r)); }
+        function loadRegisterParties() {
+            let html = '';
+            getParties().forEach(p => html += `<div class="item" onclick="openRegister('${p.id}','${p.name}')"><div class="item-title">📋 ${p.name}</div></div>`);
+            document.getElementById('registerList').innerHTML = html;
+        }
+        function openRegister(id, n) {
+            cRegParty = {id, name: n};
+            document.getElementById('registerPage').classList.remove('active');
+            document.getElementById('registerDetailPage').classList.add('active');
+            document.getElementById('registerTitle').textContent = `📋 ${n}`;
+            showRegisterTable();
+        }
+        function showRegisterTable() {
+            const r = getRegister(cRegParty.id);
+            const df = document.getElementById('regDateFilter').value.toLowerCase();
+            const dsf = document.getElementById('regDispatchFilter').value;
+            let html = '';
+            r.forEach((e, i) => {
+                if((df && !e.d.toLowerCase().includes(df)) || (dsf && e.ds.toString() !== dsf)) return;
+                html += `<tr><td>${e.d}</td><td>${e.ds}</td><td>${e.t}</td><td>${e.r||0}</td><td><button onclick="editReg(${i})" style="background:#3498db;padding:5px 8px;width:auto;margin:0;font-size:11px;">✏️</button></td><td><button onclick="delReg(${i})" style="background:#e74c3c;padding:5px 8px;width:auto;margin:0;font-size:11px;">🗑️</button></td></tr>`;
+            });
+            document.getElementById('regTableBody').innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:#999;padding:20px;">No matches</td></tr>';
+        }
+        function showAddRegisterModal() { document.getElementById('regDate').value = ''; document.getElementById('regDispatch').value = ''; document.getElementById('regReturn').value = ''; document.getElementById('registerModal').classList.add('active'); }
+        function saveRegisterEntry() {
+            const d = document.getElementById('regDate').value, ds = parseInt(document.getElementById('regDispatch').value), t = document.getElementById('regType').value, r = parseInt(document.getElementById('regReturn').value)||0;
+            if(!d || !ds) return alert('Fill all!');
+            let reg = getRegister(cRegParty.id);
+            reg.push({d, ds, t, r});
+            saveRegister(cRegParty.id, reg);
+            closeModal();
+            showRegisterTable();
+        }
+        function editReg(i) {
+            const r = getRegister(cRegParty.id)[i];
+            document.getElementById('regDate').value = r.d;
+            document.getElementById('regDispatch').value = r.ds;
+            document.getElementById('regType').value = r.t;
+            document.getElementById('regReturn').value = r.r;
+            cEditCell = {i, type: 'reg'};
+            document.getElementById('registerModal').classList.add('active');
+        }
+        function delReg(i) {
+            if(!confirm('Delete?')) return;
+            let r = getRegister(cRegParty.id);
+            r.splice(i, 1);
+            saveRegister(cRegParty.id, r);
+            showRegisterTable();
+        }
+
+        // DAYBOOK
+        function getDaybook(pid) { return JSON.parse(localStorage.getItem(`db_${pid}`) || '[]'); }
+        function saveDaybook(pid, d) { localStorage.setItem(`db_${pid}`, JSON.stringify(d)); }
+        function loadDaybookParties() {
+            let html = '';
+            getParties().forEach(p => html += `<div class="item" onclick="openDaybook('${p.id}','${p.name}')"><div class="item-title">📖 ${p.name}</div></div>`);
+            document.getElementById('daybookList').innerHTML = html;
+        }
+        function openDaybook(id, n) {
+            cDBParty = {id, name: n};
+            document.getElementById('daybookPage').classList.remove('active');
+            document.getElementById('daybookDetailPage').classList.add('active');
+            document.getElementById('daybookTitle').textContent = `📖 ${n}`;
+            showDaybookTable();
+        }
+        function showDaybookTable() {
+            const d = getDaybook(cDBParty.id);
+            const dtf = document.getElementById('dbDateFilter').value.toLowerCase();
+            const pf = document.getElementById('dbPcsFilter').value;
+            const dnf = document.getElementById('dbDesignFilter').value.toLowerCase();
+            let html = '';
+            d.forEach((e, i) => {
+                if((dtf && !e.dt.toLowerCase().includes(dtf)) || (pf && e.p.toString() !== pf) || (dnf && !e.dn.toLowerCase().includes(dnf))) return;
+                html += `<tr><td>${e.dt}</td><td>${e.p}</td><td>${e.dn}</td><td><button onclick="editDB(${i})" style="background:#3498db;padding:5px 8px;width:auto;margin:0;font-size:11px;">✏️</button></td><td><button onclick="delDB(${i})" style="background:#e74c3c;padding:5px 8px;width:auto;margin:0;font-size:11px;">🗑️</button></td></tr>`;
+            });
+            document.getElementById('dbTableBody').innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">No matches</td></tr>';
+        }
+        function showAddDaybookModal() { document.getElementById('dbDate').value = ''; document.getElementById('dbPcs').value = ''; document.getElementById('dbDesign').value = ''; document.getElementById('daybookModal').classList.add('active'); }
+        function saveDaybookEntry() {
+            const dt = document.getElementById('dbDate').value, p = parseInt(document.getElementById('dbPcs').value), dn = document.getElementById('dbDesign').value;
+            if(!dt || !p || !dn) return alert('Fill all!');
+            let db = getDaybook(cDBParty.id);
+            db.push({dt, p, dn});
+            saveDaybook(cDBParty.id, db);
+            closeModal();
+            showDaybookTable();
+        }
+        function editDB(i) {
+            const d = getDaybook(cDBParty.id)[i];
+            document.getElementById('dbDate').value = d.dt;
+            document.getElementById('dbPcs').value = d.p;
+            document.getElementById('dbDesign').value = d.dn;
+            cEditCell = {i, type: 'db'};
+            document.getElementById('daybookModal').classList.add('active');
+        }
+        function delDB(i) {
+            if(!confirm('Delete?')) return;
+            let d = getDaybook(cDBParty.id);
+            d.splice(i, 1);
+            saveDaybook(cDBParty.id, d);
+            showDaybookTable();
+        }
+
+        // REMINDERS
+        function getReminders() { return JSON.parse(localStorage.getItem('reminders') || '[]'); }
+        function saveReminders(r) { localStorage.setItem('reminders', JSON.stringify(r)); }
+        function loadReminderList() {
+            allReminders = getReminders();
+            showReminderList();
+        }
+        function showReminderList() {
+            let html = '';
+            allReminders.forEach((r, i) => {
+                const v = r.v ? '🎤' : '';
+                const st = r.s === 'completed' ? '✅' : '⏳';
+                const pr = r.pr === 'urgent' ? '⭐' : '';
+                html += `<div style="background:white;padding:12px;border-radius:5px;margin-bottom:10px;border-left:4px solid ${r.s==='completed'?'#27ae60':'#e74c3c'};">
+                    <div style="font-weight:bold;margin-bottom:5px;">${pr} ${r.t} ${v}</div>
+                    <div style="font-size:12px;color:#999;margin-bottom:8px;">Date: ${r.d} | ${st} ${r.s}</div>
+                    <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                        ${r.v?`<button onclick="playVoiceTask(${i})" style="padding:5px 8px;background:#3498db;flex:1;margin:0;font-size:11px;">▶️</button>`:''}
+                        ${r.s==='pending'?`<button onclick="editRem(${i})" style="padding:5px 8px;background:#f39c12;flex:1;margin:0;font-size:11px;">✏️</button>`:''}
+                        ${r.s==='pending'?`<button onclick="markDone(${i})" style="padding:5px 8px;background:#27ae60;flex:1;margin:0;font-size:11px;">✓</button>`:''}
+                        <button onclick="delRem(${i})" style="padding:5px 8px;background:#e74c3c;flex:1;margin:0;font-size:11px;">🗑️</button>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('remindersList').innerHTML = html || '<p style="text-align:center;color:#999;">No reminders</p>';
+        }
+        function filterRemStatus(st) {
+            let html = '';
+            allReminders.forEach((r, i) => {
+                if(st !== 'all' && r.s !== st) return;
+                const v = r.v ? '🎤' : '';
+                const icon = r.s === 'completed' ? '✅' : '⏳';
+                const pr = r.pr === 'urgent' ? '⭐' : '';
+                html += `<div style="background:white;padding:12px;border-radius:5px;margin-bottom:10px;border-left:4px solid ${r.s==='completed'?'#27ae60':'#e74c3c'};">
+                    <div style="font-weight:bold;margin-bottom:5px;">${pr} ${r.t} ${v}</div>
+                    <div style="font-size:12px;color:#999;margin-bottom:8px;">Date: ${r.d} | ${icon} ${r.s}</div>
+                    <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                        ${r.v?`<button onclick="playVoiceTask(${i})" style="padding:5px 8px;background:#3498db;flex:1;margin:0;font-size:11px;">▶️</button>`:''}
+                        ${r.s==='pending'?`<button onclick="editRem(${i})" style="padding:5px 8px;background:#f39c12;flex:1;margin:0;font-size:11px;">✏️</button>`:''}
+                        ${r.s==='pending'?`<button onclick="markDone(${i})" style="padding:5px 8px;background:#27ae60;flex:1;margin:0;font-size:11px;">✓</button>`:''}
+                        <button onclick="delRem(${i})" style="padding:5px 8px;background:#e74c3c;flex:1;margin:0;font-size:11px;">🗑️</button>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('remindersList').innerHTML = html || '<p style="text-align:center;color:#999;">No reminders</p>';
+        }
+        function showAddReminderModal() {
+            cEditRemIdx = null;
+            document.getElementById('remTitle').textContent = 'Add Reminder';
+            document.getElementById('remText').value = '';
+            document.getElementById('remDate').value = new Date().getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][new Date().getMonth()];
+            document.getElementById('remPriority').value = 'normal';
+            voiceData = null;
+            updateVoiceUI();
+            document.getElementById('reminderModal').classList.add('active');
+        }
+        function editRem(i) {
+            cEditRemIdx = i;
+            const r = allReminders[i];
+            document.getElementById('remTitle').textContent = 'Edit Reminder';
+            document.getElementById('remText').value = r.t;
+            document.getElementById('remDate').value = r.d;
+            document.getElementById('remPriority').value = r.pr;
+            voiceData = r.v || null;
+            updateVoiceUI();
+            document.getElementById('reminderModal').classList.add('active');
+        }
+        function saveReminder() {
+            const t = document.getElementById('remText').value, d = document.getElementById('remDate').value, pr = document.getElementById('remPriority').value;
+            if(!t || !d) return alert('Fill all!');
+            let rem = getReminders();
+            const obj = {t, d, pr, v: voiceData};
+            if(cEditRemIdx !== null) {
+                rem[cEditRemIdx] = {...rem[cEditRemIdx], ...obj};
+            } else {
+                obj.s = 'pending';
+                rem.push(obj);
+            }
+            saveReminders(rem);
+            closeModal();
+            loadReminderList();
+        }
+        function markDone(i) {
+            let r = getReminders();
+            r[i].s = 'completed';
+            saveReminders(r);
+            loadReminderList();
+        }
+        function delRem(i) {
+            if(!confirm('Delete?')) return;
+            let r = getReminders();
+            r.splice(i, 1);
+            saveReminders(r);
+            loadReminderList();
+        }
+        function toggleVoice() {
+            if(document.getElementById('voiceStartBtn').textContent.includes('Start')) startVoice();
+            else stopVoice();
+        }
+        function startVoice() {
+            navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+                mediaRec = new MediaRecorder(stream);
+                const ch = [];
+                mediaRec.ondataavailable = e => ch.push(e.data);
+                mediaRec.onstop = () => {
+                    const bl = new Blob(ch, {type: 'audio/webm'});
+                    const r = new FileReader();
+                    r.onload = () => { voiceData = r.result; updateVoiceUI(); document.getElementById('voiceStatus').textContent = '✅ Recorded!'; };
+                    r.readAsDataURL(bl);
+                };
+                mediaRec.start();
+                document.getElementById('voiceStartBtn').textContent = '⏹️ Stop';
+                document.getElementById('voiceStatus').textContent = '🔴 Recording...';
+            }).catch(() => alert('Mic denied!'));
+        }
+        function stopVoice() {
+            if(mediaRec) {
+                mediaRec.stop();
+                mediaRec.stream.getTracks().forEach(t => t.stop());
+                document.getElementById('voiceStartBtn').textContent = '🎙️ Start Recording';
+            }
+        }
+        function updateVoiceUI() {
+            if(voiceData) {
+                document.getElementById('voicePlayBtn').style.display = 'block';
+                document.getElementById('voiceClearBtn').style.display = 'block';
+            } else {
+                document.getElementById('voicePlayBtn').style.display = 'none';
+                document.getElementById('voiceClearBtn').style.display = 'none';
+            }
+        }
+        function playVoice() { if(voiceData) new Audio(voiceData).play(); }
+        function clearVoice() { voiceData = null; updateVoiceUI(); document.getElementById('voiceStatus').textContent = ''; }
+        function playVoiceTask(i) { if(allReminders[i].v) new Audio(allReminders[i].v).play(); }
+
+        window.addEventListener('load', () => { loadParties(); if('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(() => {}); });
+    </script>
+</body>
+</html>
