@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factory ERP</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial; background: #f5f5f5; }
+        .container { height: 100vh; display: flex; flex-direction: column; }
+        header { background: #2c3e50; color: white; padding: 15px; text-align: center; }
+        .content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .item { background: white; padding: 12px; border-radius: 5px; margin-bottom: 10px; cursor: pointer; }
+        .item-title { font-weight: bold; }
+        button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 5px; margin-top: 15px; cursor: pointer; font-weight: bold; }
+        .nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid #ddd; }
+        .nav-btn { flex: 1; padding: 10px; background: none; border: none; font-size: 20px; cursor: pointer; }
+        .nav-btn.active { background: #f0f0f0; }
+        table { width: 100%; border-collapse: collapse; background: white; margin: 10px 0; }
+        th, td { padding: 8px; border: 1px solid #ddd; font-size: 12px; text-align: center; }
+        th { background: #34495e; color: white; }
+        .editable { background: #fffacd; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 20px; border-radius: 10px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .form-buttons { display: flex; gap: 10px; margin-top: 15px; }
+        .form-buttons button { flex: 1; margin: 0; }
+        .filter-box { background: white; padding: 10px; border-radius: 5px; margin-bottom: 10px; border: 2px solid #3498db; }
+        .filter-box input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px; margin-bottom: 8px; }
+        .back-btn { background: #95a5a6 !important; }
+        .title { font-weight: bold; font-size: 16px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header><h1>📋 Factory ERP</h1></header>
+        
+        <div class="content">
+            <div id="home" class="page active">
+                <div class="title">🏠 PARTIES</div>
+                <div id="partiesDiv"></div>
+                <button onclick="addParty()">➕ ADD PARTY</button>
+            </div>
+
+            <div id="designs" class="page">
+                <button class="back-btn" onclick="back()">← BACK</button>
+                <div class="title" id="desTitle"></div>
+                <div id="designsDiv"></div>
+                <button onclick="addDesign()">➕ ADD DESIGN</button>
+            </div>
+
+            <div id="sheet" class="page">
+                <button class="back-btn" onclick="back()">← BACK</button>
+                <div class="title" id="sheetTitle"></div>
+                <div class="filter-box">
+                    <input type="text" id="tailorF" placeholder="Filter Tailor" onkeyup="drawSheet()">
+                    <input type="text" id="sizeF" placeholder="Filter Size" onkeyup="drawSheet()">
+                </div>
+                <div id="sheetDiv"></div>
+                <button onclick="addDate()">📅 ADD DATE</button>
+            </div>
+
+            <div id="chat" class="page">
+                <div class="title">💬 GROUPS</div>
+                <div id="groupsDiv"></div>
+                <button onclick="addGroup()">➕ ADD GROUP</button>
+            </div>
+
+            <div id="chatDetail" class="page">
+                <button class="back-btn" onclick="back()">← BACK</button>
+                <div id="msgsDiv" style="height:300px;overflow-y:auto;background:white;padding:10px;border-radius:5px;margin-bottom:10px;"></div>
+                <div style="display:flex;gap:10px;">
+                    <input type="text" id="msgText" placeholder="Message" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:5px;">
+                    <button onclick="sendMsg()" style="width:auto;margin:0;padding:10px 15px;">Send</button>
+                </div>
+            </div>
+
+            <div id="register" class="page">
+                <div class="title">📋 REGISTER</div>
+                <div id="regPartiesDiv"></div>
+            </div>
+
+            <div id="registerDetail" class="page">
+                <button class="back-btn" onclick="back()">← BACK</button>
+                <div class="title" id="regTitle"></div>
+                <div class="filter-box">
+                    <input type="text" id="regDateF" placeholder="Filter Date" onkeyup="drawRegister()">
+                    <input type="number" id="regDispatchF" placeholder="Filter Dispatch" onkeyup="drawRegister()">
+                </div>
+                <table><tr><th>DATE</th><th>DISPATCH</th><th>TYPE</th><th>RETURN</th><th>EDIT</th><th>DEL</th></tr><tbody id="regBody"></tbody></table>
+                <button onclick="addRegEntry()">➕ ADD</button>
+            </div>
+
+            <div id="daybook" class="page">
+                <div class="title">📖 DAY BOOK</div>
+                <div id="dbPartiesDiv"></div>
+            </div>
+
+            <div id="daybookDetail" class="page">
+                <button class="back-btn" onclick="back()">← BACK</button>
+                <div class="title" id="dbTitle"></div>
+                <div class="filter-box">
+                    <input type="text" id="dbDateF" placeholder="Filter Date" onkeyup="drawDaybook()">
+                    <input type="number" id="dbPcsF" placeholder="Filter PCS" onkeyup="drawDaybook()">
+                    <input type="text" id="dbDesignF" placeholder="Filter Design" onkeyup="drawDaybook()">
+                </div>
+                <table><tr><th>DATE</th><th>PCS</th><th>DESIGN</th><th>EDIT</th><th>DEL</th></tr><tbody id="dbBody"></tbody></table>
+                <button onclick="addDbEntry()">➕ ADD</button>
+            </div>
+
+            <div id="reminder" class="page">
+                <div class="title">📌 REMINDERS</div>
+                <div class="filter-box">
+                    <input type="text" id="remSearchF" placeholder="Search" onkeyup="drawReminders()">
+                    <div style="display:flex;gap:5px;">
+                        <button onclick="filterRemAll()" style="font-size:12px;">All</button>
+                        <button onclick="filterRemPending()" style="background:#e74c3c;font-size:12px;">Pending</button>
+                        <button onclick="filterRemDone()" style="background:#27ae60;font-size:12px;">Done</button>
+                    </div>
+                </div>
+                <div id="remDiv"></div>
+                <button onclick="addReminder()">➕ ADD REMINDER</button>
+            </div>
+        </div>
+
+        <div class="nav">
+            <button class="nav-btn active" onclick="goPage('home')">🏠</button>
+            <button class="nav-btn" onclick="goPage('chat')">💬</button>
+            <button class="nav-btn" onclick="goPage('register')">📋</button>
+            <button class="nav-btn" onclick="goPage('daybook')">📖</button>
+            <button class="nav-btn" onclick="goPage('reminder')">📌</button>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div id="partyModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Party</h2>
+            <div class="form-group"><label>Name:</label><input type="text" id="partyName"></div>
+            <div class="form-buttons">
+                <button onclick="saveParty()">Save</button>
+                <button onclick="closeAllModals()" style="background:#95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="designModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Design</h2>
+            <div class="form-group"><label>Name:</label><input type="text" id="designName"></div>
+            <div class="form-buttons">
+                <button onclick="saveDesign()">Save</button>
+                <button onclick="closeAllModals()" style="background:#95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dateModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Date</h2>
+            <div class="form-group"><label>Date:</label><input type="text" id="dateVal" placeholder="5 Mar"></div>
+            <div class="form-buttons">
+                <button onclick="saveDate()">Save</button>
+                <button onclick="closeAllModals()" style="background:#95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cellModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Cell</h2>
+            <div class="form-group"><input type="text" id="cellVal"></div>
+            <div class="form-buttons">
+                <button onclick="saveEditCell()">Save</button>
+                <button onclick="closeAllModals()" style="background:#95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="groupModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Group</h2>
+            <div class="form-group"><label>Name:</label><input type="text" id="groupName"></div>
+            <div class="form-buttons">
+                <button onclick="saveGroup()">Save</button>
+                <button onclick="closeAllModals()" style="background:#95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="regModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Register Entry</h2>
+            <div class="form-group"><label>Date:</label><input type="text" id="regDate" placeholder="5 Mar"></div>
+            <div class="form-group"><label>Dispatch:</label><input type="number" id="regDispatch"></div>
+            <div class="form-group"><label>Type:</label><select id="regType"><option>PCS</option><option>SET</option><option>CORD SET</option></select></div>
+            <div class="form-group"><label>Return:</label><input type="number" id="regReturn"></div>
+            <div class="form-buttons">
+                <button onclick="saveRegEntry()">Save</button>
+                <button onclick="closeAllModals()" style="background:#95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dbModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Daybook Entry</h2>
+            <div class="form-group"><label>Date:</label><input type="text" id="dbDate" placeholder="5 Mar"></div>
+            <div class="form-group"><label>PCS:</label><input type="number" id="dbPcs"></div>
+            <div class="form-group"><label>Design:</label><input type="text" id="dbDesign"></div>
+            <div class="form-buttons">
+                <button onclick="saveDbEntry()">Save</button>
+                <button onclick="closeAllModals()" style="background:#95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="remModal" class="modal">
+        <div class="modal-content">
+            <h2 id="remTitle">Add Reminder</h2>
+            <div class="form-group"><label>Task:</label><textarea id="remText" style="height:80px;"></textarea></div>
+            <div class="form-group">
+                <label>Voice:</label>
+                <button type="button" id="voiceBtn" onclick="toggleVoice()" style="background:#e74c3c;">🎙️ Start</button>
+                <button type="button" id="playBtn" onclick="playVoice()" style="background:#27ae60;display:none;">▶️ Play</button>
+                <button type="button" id="clearBtn" onclick="clearVoice()" style="background:#95a5a6;display:none;">✕ Clear</button>
+                <div id="voiceStatus" style="font-size:11px;color:#999;margin-top:5px;"></div>
+            </div>
+            <div class="form-group"><label>Date:</label><input type="text" id="remDate" placeholder="7 Mar"></div>
+            <div class="form-group"><label>Priority:</label><select id="remPriority"><option>Normal</option><option>⭐ Urgent</option></select></div>
+            <div class="form-buttons">
+                <button onclick="saveReminder()">Save</button>
+                <button onclick="closeAllModals()" style="background:#95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let party = null, design = null, regParty = null, dbParty = null, group = null;
+        let editCell = null, voiceData = null, mediaRec = null, remFilter = 'all';
+
+        function goPage(p) {
+            document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
+            document.getElementById(p).classList.add('active');
+            let idx = p === 'home' ? 0 : p === 'chat' ? 1 : p === 'register' ? 2 : p === 'daybook' ? 3 : 4;
+            document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+            if(p === 'home') loadParties();
+            else if(p === 'chat') loadGroups();
+            else if(p === 'register') loadRegParties();
+            else if(p === 'daybook') loadDbParties();
+            else if(p === 'reminder') drawReminders();
+        }
+
+        function back() {
+            if(design) { design = null; goPage('designs'); }
+            else if(regParty) { regParty = null; goPage('register'); loadRegParties(); }
+            else if(dbParty) { dbParty = null; goPage('daybook'); loadDbParties(); }
+            else if(group) { group = null; goPage('chat'); }
+            else { party = null; goPage('home'); }
+        }
+
+        function closeAllModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
+
+        // PARTIES
+        function loadParties() {
+            let p = JSON.parse(localStorage.getItem('parties') || '[]');
+            let h = '';
+            p.forEach(x => h += `<div class="item" onclick="openParty('${x.id}','${x.n}')"><div class="item-title">📦 ${x.n}</div></div>`);
+            document.getElementById('partiesDiv').innerHTML = h || '<p style="color:#999;text-align:center;">No parties</p>';
+        }
+        function addParty() { document.getElementById('partyName').value = ''; document.getElementById('partyModal').classList.add('active'); }
+        function saveParty() {
+            let n = document.getElementById('partyName').value;
+            if(!n) return alert('Enter name');
+            let p = JSON.parse(localStorage.getItem('parties') || '[]');
+            p.push({id: Date.now(), n});
+            localStorage.setItem('parties', JSON.stringify(p));
+            closeAllModals();
+            loadParties();
+        }
+        function openParty(id, n) {
+            party = {id, n};
+            document.getElementById('home').classList.remove('active');
+            document.getElementById('designs').classList.add('active');
+            document.getElementById('desTitle').textContent = `🎨 ${n}`;
+            loadDesigns();
+        }
+
+        // DESIGNS
+        function loadDesigns() {
+            let d = JSON.parse(localStorage.getItem(`des_${party.id}`) || '[]');
+            let h = '';
+            d.forEach(x => h += `<div class="item" onclick="openDesign('${x.id}','${x.n}')"><div class="item-title">🎨 ${x.n}</div></div>`);
+            document.getElementById('designsDiv').innerHTML = h || '<p style="color:#999;text-align:center;">No designs</p>';
+        }
+        function addDesign() { document.getElementById('designName').value = ''; document.getElementById('designModal').classList.add('active'); }
+        function saveDesign() {
+            let n = document.getElementById('designName').value;
+            if(!n) return alert('Enter name');
+            let d = JSON.parse(localStorage.getItem(`des_${party.id}`) || '[]');
+            d.push({id: Date.now(), n});
+            localStorage.setItem(`des_${party.id}`, JSON.stringify(d));
+            closeAllModals();
+            loadDesigns();
+        }
+        function openDesign(id, n) {
+            design = {id, n};
+            document.getElementById('designs').classList.remove('active');
+            document.getElementById('sheet').classList.add('active');
+            document.getElementById('sheetTitle').textContent = `${party.n} | 🎨 ${n}`;
+            drawSheet();
+        }
+
+        // SHEET
+        function drawSheet() {
+            let s = JSON.parse(localStorage.getItem(`sheet_${party.id}_${design.id}`) || '{"d":[],"sz":["XXS","XS","S","M","L","XL","2XL","3XL"],"dat":{}}');
+            let tf = document.getElementById('tailorF').value.toLowerCase();
+            let sf = document.getElementById('sizeF').value.toUpperCase();
+            let h = '<table><tr><th>TAILOR</th><th>SIZE</th><th>KATE</th><th>SILE</th><th>PEND</th>';
+            s.d.forEach(x => h += `<th>${x}</th>`);
+            h += '</tr>';
+            s.sz.forEach(sz => {
+                if(sf && !sz.includes(sf)) return;
+                let t = s.dat[`${sz}_t`] || '-';
+                if(tf && !t.toLowerCase().includes(tf)) return;
+                let k = parseInt(s.dat[`${sz}_k`]) || 50, si = parseInt(s.dat[`${sz}_si`]) || 0, p = k - si;
+                h += `<tr><td class="editable" onclick="editC('${sz}','t')">${t}</td><td>${sz}</td><td class="editable" onclick="editC('${sz}','k')">${k}</td><td class="editable" onclick="editC('${sz}','si')">${si}</td><td>${p}</td>`;
+                s.d.forEach(x => h += `<td class="editable" onclick="editC('${sz}','${x}')">${s.dat[`${sz}_${x}`] || '-'}</td>`);
+                h += '</tr>';
+            });
+            h += '</table>';
+            document.getElementById('sheetDiv').innerHTML = h;
+        }
+        function editC(sz, f) { editCell = {sz, f}; document.getElementById('cellVal').value = ''; document.getElementById('cellModal').classList.add('active'); }
+        function saveEditCell() {
+            let v = document.getElementById('cellVal').value || '-';
+            let s = JSON.parse(localStorage.getItem(`sheet_${party.id}_${design.id}`) || '{"d":[],"sz":["XXS","XS","S","M","L","XL","2XL","3XL"],"dat":{}}');
+            s.dat[`${editCell.sz}_${editCell.f}`] = v;
+            localStorage.setItem(`sheet_${party.id}_${design.id}`, JSON.stringify(s));
+            closeAllModals();
+            drawSheet();
+        }
+        function addDate() { document.getElementById('dateVal').value = ''; document.getElementById('dateModal').classList.add('active'); }
+        function saveDate() {
+            let d = document.getElementById('dateVal').value;
+            if(!d) return alert('Enter date');
+            let s = JSON.parse(localStorage.getItem(`sheet_${party.id}_${design.id}`) || '{"d":[],"sz":["XXS","XS","S","M","L","XL","2XL","3XL"],"dat":{}}');
+            if(!s.d.includes(d)) s.d.push(d);
+            localStorage.setItem(`sheet_${party.id}_${design.id}`, JSON.stringify(s));
+            closeAllModals();
+            drawSheet();
+        }
+
+        // CHAT
+        function loadGroups() {
+            let g = JSON.parse(localStorage.getItem('groups') || '[]');
+            let h = '';
+            g.forEach(x => h += `<div class="item" onclick="openGroup('${x.id}','${x.n}')"><div class="item-title">💬 ${x.n}</div></div>`);
+            document.getElementById('groupsDiv').innerHTML = h || '<p style="color:#999;text-align:center;">No groups</p>';
+        }
+        function addGroup() { document.getElementById('groupName').value = ''; document.getElementById('groupModal').classList.add('active'); }
+        function saveGroup() {
+            let n = document.getElementById('groupName').value;
+            if(!n) return alert('Enter name');
+            let g = JSON.parse(localStorage.getItem('groups') || '[]');
+            g.push({id: Date.now(), n, m: []});
+            localStorage.setItem('groups', JSON.stringify(g));
+            closeAllModals();
+            loadGroups();
+        }
+        function openGroup(id, n) {
+            group = {id, n};
+            document.getElementById('chat').classList.remove('active');
+            document.getElementById('chatDetail').classList.add('active');
+            loadMsgs();
+        }
+        function sendMsg() {
+            let t = document.getElementById('msgText').value;
+            if(!t) return;
+            let gs = JSON.parse(localStorage.getItem('groups') || '[]');
+            let g = gs.find(x => x.id == group.id);
+            g.m.push({t, ti: new Date().toLocaleString()});
+            localStorage.setItem('groups', JSON.stringify(gs));
+            document.getElementById('msgText').value = '';
+            loadMsgs();
+        }
+        function loadMsgs() {
+            let g = JSON.parse(localStorage.getItem('groups') || '[]').find(x => x.id == group.id);
+            let h = '';
+            if(g && g.m) g.m.forEach(x => h += `<div style="background:#e8f4f8;padding:10px;border-radius:5px;margin-bottom:8px;"><strong>${x.t}</strong><br><small>${x.ti}</small></div>`);
+            document.getElementById('msgsDiv').innerHTML = h;
+        }
+
+        // REGISTER
+        function loadRegParties() {
+            let p = JSON.parse(localStorage.getItem('parties') || '[]');
+            let h = '';
+            p.forEach(x => h += `<div class="item" onclick="openReg('${x.id}','${x.n}')"><div class="item-title">📋 ${x.n}</div></div>`);
+            document.getElementById('regPartiesDiv').innerHTML = h;
+        }
+        function openReg(id, n) {
+            regParty = {id, n};
+            document.getElementById('register').classList.remove('active');
+            document.getElementById('registerDetail').classList.add('active');
+            document.getElementById('regTitle').textContent = `📋 ${n}`;
+            drawRegister();
+        }
+        function drawRegister() {
+            let r = JSON.parse(localStorage.getItem(`reg_${regParty.id}`) || '[]');
+            let df = document.getElementById('regDateF').value.toLowerCase();
+            let dsf = document.getElementById('regDispatchF').value;
+            let h = '';
+            r.forEach((x, i) => {
+                if((df && !x.d.toLowerCase().includes(df)) || (dsf && x.ds.toString() !== dsf)) return;
+                h += `<tr><td>${x.d}</td><td>${x.ds}</td><td>${x.t}</td><td>${x.r || 0}</td><td><button onclick="delRegEntry(${i})" style="background:#e74c3c;width:auto;margin:0;padding:5px 8px;font-size:11px;">🗑️</button></td></tr>`;
+            });
+            document.getElementById('regBody').innerHTML = h || '<tr><td colspan="6" style="color:#999;text-align:center;padding:20px;">No matches</td></tr>';
+        }
+        function addRegEntry() { document.getElementById('regDate').value = ''; document.getElementById('regDispatch').value = ''; document.getElementById('regReturn').value = ''; document.getElementById('regModal').classList.add('active'); }
+        function saveRegEntry() {
+            let d = document.getElementById('regDate').value, ds = parseInt(document.getElementById('regDispatch').value), t = document.getElementById('regType').value, r = parseInt(document.getElementById('regReturn').value) || 0;
+            if(!d || !ds) return alert('Fill all');
+            let reg = JSON.parse(localStorage.getItem(`reg_${regParty.id}`) || '[]');
+            reg.push({d, ds, t, r});
+            localStorage.setItem(`reg_${regParty.id}`, JSON.stringify(reg));
+            closeAllModals();
+            drawRegister();
+        }
+        function delRegEntry(i) {
+            if(!confirm('Delete?')) return;
+            let r = JSON.parse(localStorage.getItem(`reg_${regParty.id}`) || '[]');
+            r.splice(i, 1);
+            localStorage.setItem(`reg_${regParty.id}`, JSON.stringify(r));
+            drawRegister();
+        }
+
+        // DAYBOOK
+        function loadDbParties() {
+            let p = JSON.parse(localStorage.getItem('parties') || '[]');
+            let h = '';
+            p.forEach(x => h += `<div class="item" onclick="openDb('${x.id}','${x.n}')"><div class="item-title">📖 ${x.n}</div></div>`);
+            document.getElementById('dbPartiesDiv').innerHTML = h;
+        }
+        function openDb(id, n) {
+            dbParty = {id, n};
+            document.getElementById('daybook').classList.remove('active');
+            document.getElementById('daybookDetail').classList.add('active');
+            document.getElementById('dbTitle').textContent = `📖 ${n}`;
+            drawDaybook();
+        }
+        function drawDaybook() {
+            let db = JSON.parse(localStorage.getItem(`db_${dbParty.id}`) || '[]');
+            let dtf = document.getElementById('dbDateF').value.toLowerCase();
+            let pf = document.getElementById('dbPcsF').value;
+            let dnf = document.getElementById('dbDesignF').value.toLowerCase();
+            let h = '';
+            db.forEach((x, i) => {
+                if((dtf && !x.dt.toLowerCase().includes(dtf)) || (pf && x.p.toString() !== pf) || (dnf && !x.dn.toLowerCase().includes(dnf))) return;
+                h += `<tr><td>${x.dt}</td><td>${x.p}</td><td>${x.dn}</td><td><button onclick="delDbEntry(${i})" style="background:#e74c3c;width:auto;margin:0;padding:5px 8px;font-size:11px;">🗑️</button></td></tr>`;
+            });
+            document.getElementById('dbBody').innerHTML = h || '<tr><td colspan="5" style="color:#999;text-align:center;padding:20px;">No matches</td></tr>';
+        }
+        function addDbEntry() { document.getElementById('dbDate').value = ''; document.getElementById('dbPcs').value = ''; document.getElementById('dbDesign').value = ''; document.getElementById('dbModal').classList.add('active'); }
+        function saveDbEntry() {
+            let dt = document.getElementById('dbDate').value, p = parseInt(document.getElementById('dbPcs').value), dn = document.getElementById('dbDesign').value;
+            if(!dt || !p || !dn) return alert('Fill all');
+            let db = JSON.parse(localStorage.getItem(`db_${dbParty.id}`) || '[]');
+            db.push({dt, p, dn});
+            localStorage.setItem(`db_${dbParty.id}`, JSON.stringify(db));
+            closeAllModals();
+            drawDaybook();
+        }
+        function delDbEntry(i) {
+            if(!confirm('Delete?')) return;
+            let db = JSON.parse(localStorage.getItem(`db_${dbParty.id}`) || '[]');
+            db.splice(i, 1);
+            localStorage.setItem(`db_${dbParty.id}`, JSON.stringify(db));
+            drawDaybook();
+        }
+
+        // REMINDERS
+        function drawReminders() {
+            let rem = JSON.parse(localStorage.getItem('reminders') || '[]');
+            let sf = document.getElementById('remSearchF').value.toLowerCase();
+            let h = '';
+            rem.forEach((x, i) => {
+                if(remFilter !== 'all' && x.s !== remFilter) return;
+                if(sf && !x.t.toLowerCase().includes(sf)) return;
+                let v = x.v ? '🎤' : '';
+                let st = x.s === 'completed' ? '✅' : '⏳';
+                let pr = x.pr === '⭐ Urgent' ? '⭐' : '';
+                h += `<div style="background:white;padding:12px;border-radius:5px;margin-bottom:10px;border-left:4px solid ${x.s==='completed'?'#27ae60':'#e74c3c'};">
+                    <div style="font-weight:bold;margin-bottom:5px;">${pr} ${x.t} ${v}</div>
+                    <div style="font-size:12px;color:#999;margin-bottom:8px;">Date: ${x.d} | ${st} ${x.s}</div>
+                    <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                        ${x.v?`<button onclick="playVoiceTask(${i})" style="padding:5px 8px;background:#3498db;flex:1;margin:0;font-size:11px;">▶️</button>`:''}
+                        ${x.s==='pending'?`<button onclick="markDone(${i})" style="padding:5px 8px;background:#27ae60;flex:1;margin:0;font-size:11px;">✓</button>`:''}
+                        <button onclick="delRem(${i})" style="padding:5px 8px;background:#e74c3c;flex:1;margin:0;font-size:11px;">🗑️</button>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('remDiv').innerHTML = h || '<p style="color:#999;text-align:center;">No reminders</p>';
+        }
+        function filterRemAll() { remFilter = 'all'; drawReminders(); }
+        function filterRemPending() { remFilter = 'pending'; drawReminders(); }
+        function filterRemDone() { remFilter = 'completed'; drawReminders(); }
+        function addReminder() {
+            document.getElementById('remTitle').textContent = 'Add Reminder';
+            document.getElementById('remText').value = '';
+            document.getElementById('remDate').value = new Date().getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][new Date().getMonth()];
+            document.getElementById('remPriority').value = 'Normal';
+            voiceData = null;
+            updateVoiceUI();
+            document.getElementById('remModal').classList.add('active');
+        }
+        function saveReminder() {
+            let t = document.getElementById('remText').value, d = document.getElementById('remDate').value, pr = document.getElementById('remPriority').value;
+            if(!t || !d) return alert('Fill all');
+            let rem = JSON.parse(localStorage.getItem('reminders') || '[]');
+            rem.push({t, d, pr, v: voiceData, s: 'pending'});
+            localStorage.setItem('reminders', JSON.stringify(rem));
+            closeAllModals();
+            drawReminders();
+        }
+        function markDone(i) {
+            let rem = JSON.parse(localStorage.getItem('reminders') || '[]');
+            rem[i].s = 'completed';
+            localStorage.setItem('reminders', JSON.stringify(rem));
+            drawReminders();
+        }
+        function delRem(i) {
+            if(!confirm('Delete?')) return;
+            let rem = JSON.parse(localStorage.getItem('reminders') || '[]');
+            rem.splice(i, 1);
+            localStorage.setItem('reminders', JSON.stringify(rem));
+            drawReminders();
+        }
+        function toggleVoice() {
+            if(document.getElementById('voiceBtn').textContent.includes('Start')) startVoice();
+            else stopVoice();
+        }
+        function startVoice() {
+            navigator.mediaDevices.getUserMedia({audio: true}).then(s => {
+                mediaRec = new MediaRecorder(s);
+                let ch = [];
+                mediaRec.ondataavailable = e => ch.push(e.data);
+                mediaRec.onstop = () => {
+                    let b = new Blob(ch, {type: 'audio/webm'});
+                    let r = new FileReader();
+                    r.onload = () => { voiceData = r.result; updateVoiceUI(); document.getElementById('voiceStatus').textContent = '✅ Recorded!'; };
+                    r.readAsDataURL(b);
+                };
+                mediaRec.start();
+                document.getElementById('voiceBtn').textContent = '⏹️ Stop';
+                document.getElementById('voiceStatus').textContent = '🔴 Recording...';
+            }).catch(() => alert('Mic denied'));
+        }
+        function stopVoice() {
+            if(mediaRec) {
+                mediaRec.stop();
+                mediaRec.stream.getTracks().forEach(t => t.stop());
+                document.getElementById('voiceBtn').textContent = '🎙️ Start';
+            }
+        }
+        function updateVoiceUI() {
+            document.getElementById('playBtn').style.display = voiceData ? 'block' : 'none';
+            document.getElementById('clearBtn').style.display = voiceData ? 'block' : 'none';
+        }
+        function playVoice() { if(voiceData) new Audio(voiceData).play(); }
+        function clearVoice() { voiceData = null; updateVoiceUI(); document.getElementById('voiceStatus').textContent = ''; }
+        function playVoiceTask(i) {
+            let rem = JSON.parse(localStorage.getItem('reminders') || '[]')[i];
+            if(rem.v) new Audio(rem.v).play();
+        }
+
+        window.addEventListener('load', () => loadParties());
+    </script>
+</body>
+</html>
