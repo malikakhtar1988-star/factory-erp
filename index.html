@@ -1,548 +1,1503 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#34495e">
+    <meta name="description" content="Complete Factory ERP System for dispatch tracking and management">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Factory ERP">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%2334495e' width='192' height='192'/><text x='50%' y='50%' font-size='80' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>F</text></svg>">
     <title>Factory ERP</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial; background: #f5f5f5; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
         .container { height: 100vh; display: flex; flex-direction: column; }
-        header { background: #2c3e50; color: white; padding: 15px; text-align: center; }
-        .content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
+        header { background: #2c3e50; color: white; padding: 15px; }
+        header h1 { font-size: 20px; }
+        .content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 70px; }
         .page { display: none; }
         .page.active { display: block; }
-        .item { background: white; padding: 12px; margin-bottom: 10px; border-radius: 5px; cursor: pointer; }
-        .title { font-weight: bold; font-size: 16px; margin-bottom: 10px; }
-        button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 5px; margin-top: 15px; cursor: pointer; font-weight: bold; }
-        .nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid #ddd; }
-        .nav-btn { flex: 1; padding: 10px; background: none; border: none; font-size: 20px; cursor: pointer; }
+        .item { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .item-title { font-weight: bold; margin-bottom: 5px; font-size: 16px; }
+        .item-sub { font-size: 12px; color: #999; }
+        button { width: 100%; padding: 15px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px; font-size: 16px; font-weight: bold; }
+        button:hover { background: #2980b9; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; border-top: 1px solid #ddd; }
+        .nav-btn { flex: 1; padding: 15px; background: none; border: none; cursor: pointer; font-size: 28px; }
         .nav-btn.active { background: #f0f0f0; }
-        table { width: 100%; border-collapse: collapse; background: white; margin: 10px 0; }
-        th, td { padding: 8px; border: 1px solid #ddd; font-size: 12px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; background: white; border-radius: 5px; overflow: hidden; }
+        th, td { padding: 10px; text-align: center; border: 1px solid #ddd; font-size: 13px; }
         th { background: #34495e; color: white; }
-        .editable { background: #fffacd; cursor: pointer; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; }
-        .modal.active { display: block; }
-        .modal-content { background: white; padding: 20px; border-radius: 10px; margin: 50px auto; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        .form-buttons { display: flex; gap: 10px; margin-top: 15px; }
+        .editable { cursor: pointer; background: #fffacd; }
+        .editable:hover { background: #ffeb99; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 25px; border-radius: 10px; max-width: 90%; min-width: 250px; }
+        .modal-content h2 { margin-bottom: 15px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
+        .form-buttons { display: flex; gap: 10px; margin-top: 20px; }
         .form-buttons button { flex: 1; margin: 0; }
-        .filter-box { background: white; padding: 10px; border-radius: 5px; margin-bottom: 10px; border: 2px solid #3498db; }
-        .filter-box input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px; margin-bottom: 8px; }
-        .back-btn { background: #95a5a6 !important; }
+        .form-buttons .cancel { background: #95a5a6; }
+        .message { background: white; padding: 10px; border-radius: 5px; margin-bottom: 8px; border-left: 4px solid #3498db; }
+        .chat-input { display: flex; gap: 10px; margin-top: 15px; }
+        .chat-input input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .chat-input button { margin: 0; width: auto; padding: 10px 15px; }
+        .success { color: #27ae60; font-weight: bold; }
+        .title-section { font-size: 12px; color: #666; text-transform: uppercase; margin: 20px 0 10px 0; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="container">
-        <header><h1>📋 Factory ERP</h1></header>
-        
+        <header>
+            <h1>🏭 Factory ERP System</h1>
+        </header>
+
         <div class="content">
-            <div id="home" class="page active">
-                <div class="title">🏠 PARTIES</div>
-                <div id="partiesDiv"></div>
-                <button onclick="openAddParty()">➕ ADD PARTY</button>
+            <!-- HOME PAGE -->
+            <div id="homePage" class="page active">
+                <div class="title-section">YOUR PARTIES</div>
+                <div id="partiesList"></div>
+                <button onclick="showAddPartyModal()">➕ ADD NEW PARTY</button>
             </div>
 
-            <div id="designs" class="page">
-                <button class="back-btn" onclick="goBack()">← BACK</button>
-                <div class="title" id="desTitle"></div>
-                <div id="designsDiv"></div>
-                <button onclick="openAddDesign()">➕ ADD DESIGN</button>
+            <!-- DESIGNS PAGE -->
+            <div id="designsPage" class="page">
+                <button onclick="goBack()" style="background: #95a5a6; margin-bottom: 10px;">← BACK</button>
+                <div class="title-section" id="partyTitle"></div>
+                <div id="designsList"></div>
+                <button onclick="showAddDesignModal()">➕ ADD NEW DESIGN</button>
             </div>
 
-            <div id="sheet" class="page">
-                <button class="back-btn" onclick="goBack()">← BACK</button>
-                <div class="title" id="sheetTitle"></div>
-                <div id="sheetDiv"></div>
-                <button onclick="openAddDate()">📅 ADD DATE</button>
+            <!-- SHEET PAGE -->
+            <div id="sheetPage" class="page">
+                <button onclick="goBack()" style="background: #95a5a6; margin-bottom: 10px;">← BACK</button>
+                <div style="background: white; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 13px;" id="sheetInfo"></div>
+                <div id="sheetContainer"></div>
             </div>
 
-            <div id="chat" class="page">
-                <div class="title">💬 GROUPS</div>
-                <div id="groupsDiv"></div>
-                <button onclick="openAddGroup()">➕ ADD GROUP</button>
+            <!-- CHAT PAGE -->
+            <div id="chatPage" class="page">
+                <div class="title-section">GROUPS</div>
+                <div id="groupsList"></div>
+                <button onclick="showAddGroupModal()">➕ NEW GROUP</button>
             </div>
 
-            <div id="chatDetail" class="page">
-                <button class="back-btn" onclick="goBack()">← BACK</button>
-                <div id="msgsDiv" style="height:300px;overflow-y:auto;background:white;padding:10px;border-radius:5px;margin-bottom:10px;"></div>
-                <div style="display:flex;gap:10px;">
-                    <input type="text" id="msgText" placeholder="Message" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:5px;">
-                    <button onclick="sendMsg()" style="width:auto;margin:0;padding:10px 15px;">Send</button>
+            <!-- GROUP CHAT -->
+            <div id="chatDetailPage" class="page">
+                <button onclick="goBack()" style="background: #95a5a6; margin-bottom: 10px;">← BACK</button>
+                <div id="messagesList" style="height: 300px; overflow-y: auto; margin-bottom: 15px;"></div>
+                <div class="chat-input">
+                    <input type="text" id="messageInput" placeholder="Type message...">
+                    <button onclick="sendMessage()" style="width: auto;">Send</button>
                 </div>
             </div>
 
-            <div id="register" class="page">
-                <div class="title">📋 REGISTER</div>
-                <div id="regPartiesDiv"></div>
+            <!-- REGISTER PAGE -->
+            <div id="registerPage" class="page">
+                <div class="title-section">PARTY REGISTER</div>
+                <div id="registerPartyList"></div>
             </div>
 
-            <div id="registerDetail" class="page">
-                <button class="back-btn" onclick="goBack()">← BACK</button>
-                <div class="title" id="regTitle"></div>
-                <div class="filter-box">
-                    <input type="text" id="regDateF" placeholder="Filter Date" onkeyup="drawRegister()">
-                    <input type="number" id="regDispatchF" placeholder="Filter Dispatch" onkeyup="drawRegister()">
-                </div>
-                <table><tr><th>DATE</th><th>DISPATCH</th><th>TYPE</th><th>RETURN</th><th>DEL</th></tr><tbody id="regBody"></tbody></table>
-                <button onclick="openAddReg()">➕ ADD</button>
+            <!-- REGISTER DETAIL PAGE -->
+            <div id="registerDetailPage" class="page">
+                <button onclick="goBack()" style="background: #95a5a6; margin-bottom: 10px;">← BACK</button>
+                <div id="registerDesignName" style="background: white; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 13px; font-weight: bold;"></div>
+                <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 5px; overflow: hidden; margin-bottom: 15px;">
+                    <tr style="background: #34495e; color: white;">
+                        <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">DATE</th>
+                        <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">DISPATCH</th>
+                        <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">EDIT</th>
+                        <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">DELETE</th>
+                        <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">RETURN</th>
+                    </tr>
+                    <tbody id="registerTableBody"></tbody>
+                    <tr style="background: #c8e6c9; font-weight: bold;">
+                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">TOTAL</td>
+                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;" id="registerTotal">0</td>
+                        <td colspan="2"></td>
+                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;" id="registerReturnTotal">0</td>
+                    </tr>
+                </table>
+                <button onclick="showAddRegisterRecordModal()" style="margin-top: 10px;">➕ ADD NEW ENTRY</button>
+                <div id="designNavigationButtons" style="margin-top: 15px; display: flex; gap: 10px; justify-content: center;"></div>
             </div>
 
-            <div id="daybook" class="page">
-                <div class="title">📖 DAY BOOK</div>
-                <div id="dbPartiesDiv"></div>
+            <!-- DAY BOOK PAGE -->
+            <div id="daybookPage" class="page">
+                <div class="title-section">📖 DAY BOOK</div>
+                <div id="daybookPartyList"></div>
             </div>
 
-            <div id="daybookDetail" class="page">
-                <button class="back-btn" onclick="goBack()">← BACK</button>
-                <div class="title" id="dbTitle"></div>
-                <div class="filter-box">
-                    <input type="text" id="dbDateF" placeholder="Filter Date" onkeyup="drawDaybook()">
-                    <input type="number" id="dbPcsF" placeholder="Filter PCS" onkeyup="drawDaybook()">
-                    <input type="text" id="dbDesignF" placeholder="Filter Design" onkeyup="drawDaybook()">
-                </div>
-                <table><tr><th>DATE</th><th>PCS</th><th>DESIGN</th><th>DEL</th></tr><tbody id="dbBody"></tbody></table>
-                <button onclick="openAddDb()">➕ ADD</button>
-            </div>
-
-            <div id="reminder" class="page">
-                <div class="title">📌 REMINDERS</div>
-                <div id="remDiv"></div>
-                <button onclick="openAddRem()">➕ ADD REMINDER</button>
+            <!-- DAY BOOK DETAIL PAGE -->
+            <div id="daybookDetailPage" class="page">
+                <button onclick="goBack()" style="background: #95a5a6; margin-bottom: 10px;">← BACK</button>
+                <div id="daybookPartyName" style="background: white; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 13px; font-weight: bold;"></div>
+                <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 5px; overflow: hidden; margin-bottom: 15px;">
+                    <tr style="background: #34495e; color: white;">
+                        <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">DATE</th>
+                        <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">PCS</th>
+                        <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">DESIGN NAME</th>
+                        <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">EDIT</th>
+                        <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">DELETE</th>
+                    </tr>
+                    <tbody id="daybookTableBody"></tbody>
+                </table>
+                <button onclick="showAddDaybookEntryModal()" style="margin-top: 10px;">➕ ADD ENTRY</button>
             </div>
         </div>
 
-        <div class="nav">
-            <button class="nav-btn active" onclick="goPage('home')">🏠</button>
-            <button class="nav-btn" onclick="goPage('chat')">💬</button>
-            <button class="nav-btn" onclick="goPage('register')">📋</button>
-            <button class="nav-btn" onclick="goPage('daybook')">📖</button>
-            <button class="nav-btn" onclick="goPage('reminder')">📌</button>
+        <div class="bottom-nav">
+            <button class="nav-btn active" onclick="showPage('home')">🏠</button>
+            <button class="nav-btn" onclick="showPage('chat')">💬</button>
+            <button class="nav-btn" onclick="showPage('register')">📋</button>
+            <button class="nav-btn" onclick="showPage('daybook')">📖</button>
         </div>
     </div>
 
     <!-- MODALS -->
-    <div id="partyModal" class="modal">
+    <div id="addPartyModal" class="modal">
         <div class="modal-content">
-            <h2>Add Party</h2>
-            <div class="form-group"><label>Name:</label><input type="text" id="partyName"></div>
-            <div class="form-buttons">
-                <button onclick="saveParty()">Save</button>
-                <button onclick="closeModal('partyModal')" style="background:#95a5a6;">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="designModal" class="modal">
-        <div class="modal-content">
-            <h2>Add Design</h2>
-            <div class="form-group"><label>Name:</label><input type="text" id="designName"></div>
-            <div class="form-buttons">
-                <button onclick="saveDesign()">Save</button>
-                <button onclick="closeModal('designModal')" style="background:#95a5a6;">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="dateModal" class="modal">
-        <div class="modal-content">
-            <h2>Add Date</h2>
-            <div class="form-group"><label>Date:</label><input type="text" id="dateVal" placeholder="5 Mar"></div>
-            <div class="form-buttons">
-                <button onclick="saveDate()">Save</button>
-                <button onclick="closeModal('dateModal')" style="background:#95a5a6;">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="cellModal" class="modal">
-        <div class="modal-content">
-            <h2>Edit Cell</h2>
-            <div class="form-group"><input type="text" id="cellVal"></div>
-            <div class="form-buttons">
-                <button onclick="saveCell()">Save</button>
-                <button onclick="closeModal('cellModal')" style="background:#95a5a6;">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="groupModal" class="modal">
-        <div class="modal-content">
-            <h2>Add Group</h2>
-            <div class="form-group"><label>Name:</label><input type="text" id="groupName"></div>
-            <div class="form-buttons">
-                <button onclick="saveGroup()">Save</button>
-                <button onclick="closeModal('groupModal')" style="background:#95a5a6;">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="regModal" class="modal">
-        <div class="modal-content">
-            <h2>Add Register Entry</h2>
-            <div class="form-group"><label>Date:</label><input type="text" id="regDate" placeholder="5 Mar"></div>
-            <div class="form-group"><label>Dispatch:</label><input type="number" id="regDispatch"></div>
-            <div class="form-group"><label>Type:</label><select id="regType"><option>PCS</option><option>SET</option></select></div>
-            <div class="form-group"><label>Return:</label><input type="number" id="regReturn" value="0"></div>
-            <div class="form-buttons">
-                <button onclick="saveReg()">Save</button>
-                <button onclick="closeModal('regModal')" style="background:#95a5a6;">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="dbModal" class="modal">
-        <div class="modal-content">
-            <h2>Add Daybook Entry</h2>
-            <div class="form-group"><label>Date:</label><input type="text" id="dbDate" placeholder="5 Mar"></div>
-            <div class="form-group"><label>PCS:</label><input type="number" id="dbPcs"></div>
-            <div class="form-group"><label>Design:</label><input type="text" id="dbDesign"></div>
-            <div class="form-buttons">
-                <button onclick="saveDb()">Save</button>
-                <button onclick="closeModal('dbModal')" style="background:#95a5a6;">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="remModal" class="modal">
-        <div class="modal-content">
-            <h2>Add Reminder</h2>
-            <div class="form-group"><label>Task:</label><textarea id="remText" style="height:80px;"></textarea></div>
+            <h2>Add New Party</h2>
             <div class="form-group">
-                <label>Voice:</label><br>
-                <button type="button" id="voiceBtn" onclick="toggleVoice()" style="background:#e74c3c;margin-top:5px;">🎙️ Start</button>
-                <button type="button" id="playBtn" onclick="playVoice()" style="background:#27ae60;display:none;margin-top:5px;">▶️ Play</button>
-                <button type="button" id="clearBtn" onclick="clearVoice()" style="background:#95a5a6;display:none;margin-top:5px;">✕ Clear</button>
-                <div id="voiceStatus" style="font-size:11px;color:#999;margin-top:5px;"></div>
+                <label>Party Name:</label>
+                <input type="text" id="partyNameInput" placeholder="e.g., Anas Arkas Fabrics">
             </div>
-            <div class="form-group"><label>Date:</label><input type="text" id="remDate" placeholder="7 Mar"></div>
             <div class="form-buttons">
-                <button onclick="saveRem()">Save</button>
-                <button onclick="closeModal('remModal')" style="background:#95a5a6;">Cancel</button>
+                <button onclick="saveParty()">Add</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addDesignModal" class="modal">
+        <div class="modal-content">
+            <h2>Add New Design</h2>
+            <div class="form-group">
+                <label>Design Name:</label>
+                <input type="text" id="designNameInput" placeholder="e.g., Paan Black">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveDesign()">Add</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Entry</h2>
+            <div class="form-group">
+                <label id="editLabel"></label>
+                <input type="number" id="editInput" placeholder="Value">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveEditValue()">Save</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editTailorModal" class="modal">
+        <div class="modal-content">
+            <h2>Select Tailor</h2>
+            <div class="form-group">
+                <label id="editTailorLabel"></label>
+                <input type="text" id="tailorInput" placeholder="e.g., Faizan No.13">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveTailorName()">Save</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addDateModal" class="modal">
+        <div class="modal-content">
+            <h2>Add New Date</h2>
+            <div class="form-group">
+                <label>Date (e.g., 1 Mar):</label>
+                <input type="text" id="newDateInput" placeholder="e.g., 1 Mar">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveNewDate()">Add</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editPartyModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Party Details</h2>
+            <div class="form-group">
+                <label>Party Name:</label>
+                <input type="text" id="editPartyNameInput" placeholder="Party name">
+            </div>
+            <div class="form-group">
+                <label>Mobile Number:</label>
+                <input type="text" id="editPartyMobileInput" placeholder="Mobile number">
+            </div>
+            <div class="form-group">
+                <label>Address (Optional):</label>
+                <input type="text" id="editPartyAddressInput" placeholder="Address">
+            </div>
+            <div class="form-buttons">
+                <button onclick="savePartyDetails()">Save</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editDesignModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Design</h2>
+            <div class="form-group">
+                <label>Design Name:</label>
+                <input type="text" id="editDesignNameInput" placeholder="Design name">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveDesignDetails()">Save</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addGroupModal" class="modal">
+        <div class="modal-content">
+            <h2>Create Group</h2>
+            <div class="form-group">
+                <label>Group Name:</label>
+                <input type="text" id="groupNameInput" placeholder="e.g., Faizan's Group">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveGroup()">Create</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addRegisterRecordModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Entry</h2>
+            <div class="form-group">
+                <label>Date:</label>
+                <input type="text" id="registerRecordDate" placeholder="e.g., 26 Feb">
+            </div>
+            <div class="form-group">
+                <label>Dispatch - PCS:</label>
+                <input type="number" id="registerRecordPCS" placeholder="e.g., 50">
+            </div>
+            <div class="form-group">
+                <label>Dispatch - SET:</label>
+                <input type="number" id="registerRecordSET" placeholder="e.g., 2">
+            </div>
+            <div class="form-group">
+                <label>Dispatch - CORD SET:</label>
+                <input type="number" id="registerRecordCORDSET" placeholder="e.g., 1">
+            </div>
+            <div class="form-group">
+                <label>Return:</label>
+                <input type="number" id="registerRecordReturn" placeholder="e.g., 2">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveRegisterRecord()">Save</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addDaybookEntryModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Day Book Entry</h2>
+            <div class="form-group">
+                <label>Date:</label>
+                <input type="text" id="daybookEntryDate" placeholder="e.g., 5 Mar" value="">
+            </div>
+            <div class="form-group">
+                <label>Pcs:</label>
+                <input type="number" id="daybookEntryPcs" placeholder="e.g., 50">
+            </div>
+            <div class="form-group">
+                <label>Design Name:</label>
+                <input type="text" id="daybookEntryDesign" placeholder="e.g., Paan Black">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveDaybookEntry()">Save</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editDateModal" class="modal">
+        <div class="modal-content">
+            <h2>📅 Change Date</h2>
+            <div class="form-group">
+                <label>Select or Type Date:</label>
+                <input type="text" id="editDateInput" placeholder="e.g., 5 Mar, 6 Mar">
+            </div>
+            
+            <div style="margin: 15px 0; padding: 10px; background: #f0f0f0; border-radius: 5px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 10px; font-size: 12px;">Quick Date Options:</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <button onclick="setQuickDate('Today')" style="background: #3498db; padding: 8px; font-size: 12px; width: auto; margin: 0;">Today</button>
+                    <button onclick="setQuickDate('Yesterday')" style="background: #3498db; padding: 8px; font-size: 12px; width: auto; margin: 0;">Yesterday</button>
+                    <button onclick="setQuickDate('Tomorrow')" style="background: #3498db; padding: 8px; font-size: 12px; width: auto; margin: 0;">Tomorrow</button>
+                    <button onclick="setQuickDate('Last Week')" style="background: #3498db; padding: 8px; font-size: 12px; width: auto; margin: 0;">Last Week</button>
+                </div>
+            </div>
+            
+            <div style="margin: 15px 0; padding: 10px; background: #fff9e6; border-radius: 5px; border-left: 3px solid #f39c12;">
+                <label style="display: block; font-weight: bold; margin-bottom: 8px; font-size: 12px;">📌 Date Format Examples:</label>
+                <div style="font-size: 11px; color: #666; line-height: 1.6;">
+                    ✓ 5 Mar<br>
+                    ✓ 05 Mar<br>
+                    ✓ 5 March<br>
+                    ✓ 05-03-2026
+                </div>
+            </div>
+            
+            <div class="form-buttons">
+                <button onclick="saveEditedDate()" style="background: #27ae60;">✅ Update Date</button>
+                <button class="cancel" onclick="closeModal()" style="background: #95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editSheetDateModal" class="modal">
+        <div class="modal-content">
+            <h2>📅 Edit Sheet Date</h2>
+            <div class="form-group">
+                <label>Old Date:</label>
+                <input type="text" id="sheetOldDate" disabled style="background: #f0f0f0;">
+            </div>
+            <div class="form-group">
+                <label>New Date:</label>
+                <input type="text" id="sheetNewDate" placeholder="e.g., 1 Mar">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveSheetDateEdit()" style="background: #27ae60;">✅ Update</button>
+                <button class="cancel" onclick="closeModal()" style="background: #95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
 
     <script>
-        let p = null, d = null, rp = null, dp = null, g = null, editC = null;
-        let voiceData = null, mediaRec = null;
+        // ✅ NO FIREBASE - Using localStorage for instant, error-free operation!
+        
+        let currentParty = null;
+        let currentDesign = null;
+        let currentGroup = null;
+        let editingCell = null;
 
-        function goPage(page) {
-            document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
-            document.getElementById(page).classList.add('active');
-            let idx = ['home','chat','register','daybook','reminder'].indexOf(page);
-            document.querySelectorAll('.nav-btn')[idx].classList.add('active');
-            if(page === 'home') loadParties();
-            else if(page === 'chat') loadGroups();
-            else if(page === 'register') loadRegParties();
-            else if(page === 'daybook') loadDbParties();
-            else if(page === 'reminder') loadReminders();
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
+            if(page === 'home') {
+                document.getElementById('homePage').classList.add('active');
+                document.querySelector('.nav-btn:nth-child(1)').classList.add('active');
+                loadParties();
+            } else if(page === 'chat') {
+                document.getElementById('chatPage').classList.add('active');
+                document.querySelector('.nav-btn:nth-child(2)').classList.add('active');
+                loadGroups();
+            } else if(page === 'register') {
+                document.getElementById('registerPage').classList.add('active');
+                document.querySelector('.nav-btn:nth-child(3)').classList.add('active');
+                loadRegisterParties();
+            } else if(page === 'daybook') {
+                document.getElementById('daybookPage').classList.add('active');
+                document.querySelector('.nav-btn:nth-child(4)').classList.add('active');
+                loadDaybookParties();
+            }
         }
 
         function goBack() {
-            if(d) { d = null; document.getElementById('sheet').classList.remove('active'); document.getElementById('designs').classList.add('active'); }
-            else if(rp) { rp = null; document.getElementById('registerDetail').classList.remove('active'); document.getElementById('register').classList.add('active'); }
-            else if(dp) { dp = null; document.getElementById('daybookDetail').classList.remove('active'); document.getElementById('daybook').classList.add('active'); }
-            else if(g) { g = null; document.getElementById('chatDetail').classList.remove('active'); document.getElementById('chat').classList.add('active'); }
-            else { p = null; document.getElementById('designs').classList.remove('active'); document.getElementById('home').classList.add('active'); }
+            if(currentDesign) {
+                currentDesign = null;
+                document.getElementById('sheetPage').classList.remove('active');
+                document.getElementById('designsPage').classList.add('active');
+            } else if(currentParty && !currentRegisterPartyId && !currentDaybookPartyId) {
+                currentParty = null;
+                document.getElementById('designsPage').classList.remove('active');
+                document.getElementById('homePage').classList.add('active');
+                loadParties();
+            } else if(currentGroup) {
+                currentGroup = null;
+                document.getElementById('chatDetailPage').classList.remove('active');
+                document.getElementById('chatPage').classList.add('active');
+                loadGroups();
+            } else if(currentRegisterPartyId) {
+                currentRegisterPartyId = null;
+                document.getElementById('registerDetailPage').classList.remove('active');
+                document.getElementById('registerPage').classList.add('active');
+                loadRegisterParties();
+            } else if(currentDaybookPartyId) {
+                currentDaybookPartyId = null;
+                document.getElementById('daybookDetailPage').classList.remove('active');
+                document.getElementById('daybookPage').classList.add('active');
+                loadDaybookParties();
+            }
         }
 
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        // STORAGE FUNCTIONS
+        function getParties() {
+            return JSON.parse(localStorage.getItem('parties') || '{}');
+        }
+
+        function saveParties(parties) {
+            localStorage.setItem('parties', JSON.stringify(parties));
+        }
+
+        function getDesigns(partyId) {
+            const designs = JSON.parse(localStorage.getItem(`designs_${partyId}`) || '{}');
+            return designs;
+        }
+
+        function saveDesigns(partyId, designs) {
+            localStorage.setItem(`designs_${partyId}`, JSON.stringify(designs));
+        }
+
+        function getSheet(partyId, designId) {
+            return JSON.parse(localStorage.getItem(`sheet_${partyId}_${designId}`) || '{"sizes":["XXS","XS","S","M","L","XL","2XL","3XL"],"dates":["26 Feb","27 Feb","28 Feb"],"data":{}}');
+        }
+
+        function saveSheet(partyId, designId, sheet) {
+            localStorage.setItem(`sheet_${partyId}_${designId}`, JSON.stringify(sheet));
+        }
+
+        function getMessages(groupId) {
+            return JSON.parse(localStorage.getItem(`messages_${groupId}`) || '[]');
+        }
+
+        function saveMessages(groupId, messages) {
+            localStorage.setItem(`messages_${groupId}`, JSON.stringify(messages));
+        }
 
         // PARTIES
         function loadParties() {
-            let ps = JSON.parse(localStorage.getItem('parties') || '[]');
-            let h = '';
-            ps.forEach(x => h += `<div class="item" onclick="openParty('${x.id}','${x.n}')"><div>📦 ${x.n}</div></div>`);
-            document.getElementById('partiesDiv').innerHTML = h || '<p>No parties</p>';
-        }
-        function openAddParty() { document.getElementById('partyName').value = ''; document.getElementById('partyModal').classList.add('active'); }
-        function saveParty() {
-            let n = document.getElementById('partyName').value.trim();
-            if(!n) { alert('Enter name'); return; }
-            let ps = JSON.parse(localStorage.getItem('parties') || '[]');
-            ps.push({id: Date.now(), n});
-            localStorage.setItem('parties', JSON.stringify(ps));
-            closeModal('partyModal');
-            loadParties();
-        }
-        function openParty(id, n) {
-            p = {id, n};
-            document.getElementById('home').classList.remove('active');
-            document.getElementById('designs').classList.add('active');
-            document.getElementById('desTitle').textContent = n;
-            loadDesigns();
+            const parties = getParties();
+            const html = Object.keys(parties).length ? Object.keys(parties).map(id => `
+                <div class="item" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div onclick="openParty('${id}', '${parties[id].name}')" style="flex: 1; cursor: pointer;">
+                        <div class="item-title">📋 ${parties[id].name}</div>
+                        <div class="item-sub">${parties[id].mobile ? '📱 ' + parties[id].mobile : 'Tap to view designs'}</div>
+                    </div>
+                    <button onclick="editPartyModal('${id}')" style="background: #3498db; padding: 8px 12px; font-size: 12px; margin: 0; width: auto;">✏️ Edit</button>
+                </div>
+            `).join('') : '<p style="padding: 20px; text-align: center; color: #999;">No parties yet. Add one!</p>';
+            
+            document.getElementById('partiesList').innerHTML = html;
         }
 
-        // DESIGNS
-        function loadDesigns() {
-            let ds = JSON.parse(localStorage.getItem(`des_${p.id}`) || '[]');
-            let h = '';
-            ds.forEach(x => h += `<div class="item" onclick="openDesign('${x.id}','${x.n}')"><div>🎨 ${x.n}</div></div>`);
-            document.getElementById('designsDiv').innerHTML = h || '<p>No designs</p>';
-        }
-        function openAddDesign() { document.getElementById('designName').value = ''; document.getElementById('designModal').classList.add('active'); }
-        function saveDesign() {
-            let n = document.getElementById('designName').value.trim();
-            if(!n) { alert('Enter name'); return; }
-            let ds = JSON.parse(localStorage.getItem(`des_${p.id}`) || '[]');
-            ds.push({id: Date.now(), n});
-            localStorage.setItem(`des_${p.id}`, JSON.stringify(ds));
-            closeModal('designModal');
-            loadDesigns();
-        }
-        function openDesign(id, n) {
-            d = {id, n};
-            document.getElementById('designs').classList.remove('active');
-            document.getElementById('sheet').classList.add('active');
-            document.getElementById('sheetTitle').textContent = `${p.n} | ${n}`;
-            loadSheet();
+        function openParty(partyId, partyName) {
+            currentParty = { id: partyId, name: partyName };
+            document.getElementById('homePage').classList.remove('active');
+            document.getElementById('designsPage').classList.add('active');
+            document.getElementById('partyTitle').textContent = `👔 ${partyName}`;
+            
+            const designs = getDesigns(partyId);
+            const html = Object.keys(designs).length ? Object.keys(designs).map(designId => `
+                <div class="item" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div onclick="openDesign('${designId}', '${designs[designId].name}')" style="flex: 1; cursor: pointer;">
+                        <div class="item-title">🎨 ${designs[designId].name}</div>
+                    </div>
+                    <button onclick="editDesignModal('${designId}', '${designs[designId].name}')" style="background: #3498db; padding: 8px 12px; font-size: 12px; margin: 0; width: auto;">✏️ Edit</button>
+                </div>
+            `).join('') : '<p style="padding: 20px; text-align: center; color: #999;">No designs yet.</p>';
+            
+            document.getElementById('designsList').innerHTML = html;
         }
 
-        // SHEET
-        function loadSheet() {
-            let s = JSON.parse(localStorage.getItem(`sheet_${p.id}_${d.id}`) || '{"dates":[],"szs":["XXS","XS","S","M","L","XL","2XL","3XL"],"data":{}}');
-            let h = '<table><tr><th>TAILOR</th><th>SIZE</th><th>KATE</th><th>SILE</th><th>PEND</th>';
-            s.dates.forEach(x => h += `<th>${x}</th>`);
-            h += '<th>TOTAL DISPATCH</th><th>STOCK</th></tr>';
-            s.szs.forEach(sz => {
-                let t = s.data[`${sz}_tailor`] || '-';
-                let k = parseInt(s.data[`${sz}_kate`]) || 50;
-                let si = parseInt(s.data[`${sz}_sile`]) || 0;
-                let pe = k - si;
-                let totalDisp = 0;
-                s.dates.forEach(x => {
-                    let val = parseInt(s.data[`${sz}_${x}`]);
-                    if(!isNaN(val)) totalDisp += val;
-                });
-                let stock = k - totalDisp;
-                h += `<tr><td class="editable" onclick="editCell('${sz}','tailor')">${t}</td><td>${sz}</td><td class="editable" onclick="editCell('${sz}','kate')">${k}</td><td class="editable" onclick="editCell('${sz}','sile')">${si}</td><td>${pe}</td>`;
-                s.dates.forEach(x => h += `<td class="editable" onclick="editCell('${sz}','${x}')">${s.data[`${sz}_${x}`] || '-'}</td>`);
-                h += `<td style="background:#fff9e6;font-weight:bold;">${totalDisp}</td><td style="background:#e8f8f5;font-weight:bold;">${stock}</td></tr>`;
+        function openDesign(designId, designName) {
+            currentDesign = { id: designId, name: designName };
+            document.getElementById('designsPage').classList.remove('active');
+            document.getElementById('sheetPage').classList.add('active');
+            document.getElementById('sheetInfo').innerHTML = `<b>${currentParty.name}</b> | 🎨 ${designName}`;
+            
+            const sheet = getSheet(currentParty.id, designId);
+            const tailors = getTailors();
+            
+            let html = '<table><tr><th>TAILOR</th><th>SIZE</th><th>KATE</th><th>SILE</th><th>PEND</th>';
+            sheet.dates.forEach((d, idx) => {
+                const escapedDate = d.replace(/"/g, '&quot;');
+                html += `<th>${d}<br><button onclick="editDate(${idx}, '${escapedDate}')" style="background: #3498db; padding: 2px 6px; font-size: 10px; margin-right: 2px; width: auto;" title="Edit this date">✏️</button><button onclick="deleteDate(${idx}, '${escapedDate}')" style="background: #e74c3c; padding: 2px 6px; font-size: 10px; width: auto;" title="Delete this date">🗑️</button></th>`;
             });
-            h += '</table>';
-            document.getElementById('sheetDiv').innerHTML = h;
+            html += '<th>TOTAL DISPATCH</th><th>STOCK</th></tr>';
+
+            let grandTotal = 0;
+            let grandStock = 0;
+
+            sheet.sizes.forEach(size => {
+                const tailor = sheet.data[`${size}_tailor`] || '-';
+                const kate = parseInt(sheet.data[`${size}_kate`]) || 50;
+                const sile = parseInt(sheet.data[`${size}_sile`]) || 0;
+                const pend = kate - sile; // Auto-calculate PEND
+                
+                let total = 0;
+                sheet.dates.forEach(date => {
+                    const val = parseInt(sheet.data[`${size}_${date}`]) || 0;
+                    total += val;
+                });
+                const stock = sile - total;
+                
+                grandTotal += total;
+                grandStock += stock;
+                
+                html += `<tr>`;
+                html += `<td class="editable" onclick="editTailor('${size}')">${tailor}</td>`;
+                html += `<td>${size}</td>`;
+                html += `<td class="editable" onclick="editCell('${size}', 'kate')">${kate}</td>`;
+                html += `<td class="editable" onclick="editCell('${size}', 'sile')">${sile}</td>`;
+                html += `<td>${pend}</td>`;
+                
+                sheet.dates.forEach(date => {
+                    const key = `${size}_${date}`;
+                    const val = sheet.data[key] || '-';
+                    html += `<td class="editable" onclick="editCell('${size}', '${date}', '${key}')">${val}</td>`;
+                });
+                
+                html += `<td>${total}</td><td>${stock}</td></tr>`;
+            });
+
+            // TOTAL ROW
+            let totalKate = 0, totalSile = 0, totalPend = 0;
+            sheet.sizes.forEach(size => {
+                totalKate += parseInt(sheet.data[`${size}_kate`]) || 50;
+                totalSile += parseInt(sheet.data[`${size}_sile`]) || 0;
+                totalPend += (parseInt(sheet.data[`${size}_kate`]) || 50) - (parseInt(sheet.data[`${size}_sile`]) || 0);
+            });
+
+            html += `<tr style="background: #c8e6c9; font-weight: bold;"><td>TOTAL</td><td></td>`;
+            html += `<td>${totalKate}</td>`;
+            html += `<td>${totalSile}</td>`;
+            html += `<td>${totalPend}</td>`;
+            
+            sheet.dates.forEach(date => {
+                let dateTotal = 0;
+                sheet.sizes.forEach(size => {
+                    const val = parseInt(sheet.data[`${size}_${date}`]) || 0;
+                    dateTotal += val;
+                });
+                html += `<td>${dateTotal}</td>`;
+            });
+            
+            html += `<td>${grandTotal}</td><td>${grandStock}</td></tr>`;
+            html += '</table>';
+            
+            let fullHtml = html;
+            fullHtml += `<div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button onclick="showAddDateModal()" style="flex: 1; margin-top: 0;">➕ ADD NEW DATE</button>
+                <button onclick="syncSheetToRegister()" style="flex: 1; margin-top: 0; background: #27ae60;">🔄 SYNC TO REGISTER</button>
+            </div>`;
+            
+            document.getElementById('sheetContainer').innerHTML = fullHtml;
         }
-        function editCell(sz, f) { editC = {sz, f}; document.getElementById('cellVal').value = ''; document.getElementById('cellModal').classList.add('active'); }
-        function saveCell() {
-            let v = document.getElementById('cellVal').value || '-';
-            let s = JSON.parse(localStorage.getItem(`sheet_${p.id}_${d.id}`) || '{"dates":[],"szs":["XXS","XS","S","M","L","XL","2XL","3XL"],"data":{}}');
-            s.data[`${editC.sz}_${editC.f}`] = v;
-            localStorage.setItem(`sheet_${p.id}_${d.id}`, JSON.stringify(s));
-            closeModal('cellModal');
-            loadSheet();
+
+        function editCell(size, dateOrCol, key) {
+            editingCell = { size, dateOrCol, key };
+            
+            // Get current value
+            const sheet = getSheet(currentParty.id, currentDesign.id);
+            let currentValue = '';
+            
+            if(key) {
+                // It's a date column
+                currentValue = sheet.data[key] || '-';
+            } else {
+                // It's KATE or SILE
+                if(dateOrCol === 'kate') {
+                    currentValue = sheet.data[`${size}_kate`] || 50;
+                } else if(dateOrCol === 'sile') {
+                    currentValue = sheet.data[`${size}_sile`] || 0;
+                }
+            }
+            
+            // Set modal values
+            document.getElementById('editLabel').textContent = `${size} - ${dateOrCol.toUpperCase()}`;
+            document.getElementById('editInput').value = currentValue;
+            document.getElementById('editInput').focus();
+            document.getElementById('editInput').select();
+            
+            // Show modal
+            document.getElementById('editModal').classList.add('active');
         }
-        function openAddDate() { document.getElementById('dateVal').value = ''; document.getElementById('dateModal').classList.add('active'); }
-        function saveDate() {
-            let x = document.getElementById('dateVal').value;
-            if(!x) { alert('Enter date'); return; }
-            let s = JSON.parse(localStorage.getItem(`sheet_${p.id}_${d.id}`) || '{"dates":[],"szs":["XXS","XS","S","M","L","XL","2XL","3XL"],"data":{}}');
-            if(!s.dates.includes(x)) s.dates.push(x);
-            localStorage.setItem(`sheet_${p.id}_${d.id}`, JSON.stringify(s));
-            closeModal('dateModal');
-            loadSheet();
+
+        function saveEditValue() {
+            const value = document.getElementById('editInput').value || '-';
+            
+            if(!editingCell) {
+                alert('❌ Error: No cell selected!');
+                return;
+            }
+            
+            try {
+                const sheet = getSheet(currentParty.id, currentDesign.id);
+                
+                if(editingCell.key) {
+                    // It's a date dispatch cell
+                    sheet.data[editingCell.key] = isNaN(value) ? value : parseInt(value);
+                } else {
+                    // It's KATE or SILE
+                    if(editingCell.dateOrCol === 'kate') {
+                        sheet.data[`${editingCell.size}_kate`] = parseInt(value) || 50;
+                    } else if(editingCell.dateOrCol === 'sile') {
+                        sheet.data[`${editingCell.size}_sile`] = parseInt(value) || 0;
+                    }
+                }
+                
+                console.log('Saving data:', sheet.data);
+                saveSheet(currentParty.id, currentDesign.id, sheet);
+                closeModal();
+                
+                // Refresh the sheet
+                openDesign(currentDesign.id, currentDesign.name);
+                alert('✅ Saved successfully!');
+            } catch(error) {
+                console.error('Error saving value:', error);
+                alert('❌ Error saving: ' + error.message);
+            }
         }
 
         // CHAT
         function loadGroups() {
-            let gs = JSON.parse(localStorage.getItem('groups') || '[]');
-            let h = '';
-            gs.forEach(x => h += `<div class="item" onclick="openGroup('${x.id}','${x.n}')"><div>💬 ${x.n}</div></div>`);
-            document.getElementById('groupsDiv').innerHTML = h || '<p>No groups</p>';
+            const groups = JSON.parse(localStorage.getItem('groups') || '{}');
+            const html = Object.keys(groups).length ? Object.keys(groups).map(groupId => `
+                <div class="item" onclick="openGroup('${groupId}', '${groups[groupId].name}')">
+                    <div class="item-title">👥 ${groups[groupId].name}</div>
+                </div>
+            `).join('') : '<p style="padding: 20px; text-align: center; color: #999;">No groups yet.</p>';
+            
+            document.getElementById('groupsList').innerHTML = html;
         }
-        function openAddGroup() { document.getElementById('groupName').value = ''; document.getElementById('groupModal').classList.add('active'); }
+
+        function openGroup(groupId, groupName) {
+            currentGroup = { id: groupId, name: groupName };
+            document.getElementById('chatPage').classList.remove('active');
+            document.getElementById('chatDetailPage').classList.add('active');
+            document.querySelector('header h1').textContent = `👥 ${groupName}`;
+            
+            const messages = getMessages(groupId);
+            const html = messages.length ? messages.map(msg => `
+                <div class="message">${msg.text} <br><small>${msg.sender} - ${msg.time}</small></div>
+            `).join('') : '<p style="text-align: center; color: #999;">No messages yet.</p>';
+            
+            document.getElementById('messagesList').innerHTML = html;
+        }
+
+        function sendMessage() {
+            const text = document.getElementById('messageInput').value;
+            if(!text) return;
+            
+            const messages = getMessages(currentGroup.id);
+            messages.push({
+                text: text,
+                sender: 'You',
+                time: new Date().toLocaleTimeString()
+            });
+            saveMessages(currentGroup.id, messages);
+            document.getElementById('messageInput').value = '';
+            openGroup(currentGroup.id, currentGroup.name);
+            alert('✅ Sent!');
+        }
+
+        // MODALS & SAVE FUNCTIONS
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+        }
+
+        function showAddPartyModal() {
+            document.getElementById('addPartyModal').classList.add('active');
+        }
+
+        function showAddDesignModal() {
+            document.getElementById('addDesignModal').classList.add('active');
+        }
+
+        function showAddGroupModal() {
+            document.getElementById('addGroupModal').classList.add('active');
+        }
+
+        function saveParty() {
+            const name = document.getElementById('partyNameInput').value;
+            if(!name) return alert('Enter party name!');
+            
+            const parties = getParties();
+            const id = Date.now().toString();
+            parties[id] = { name, mobile: '', address: '', created: new Date().toISOString() };
+            saveParties(parties);
+            closeModal();
+            document.getElementById('partyNameInput').value = '';
+            loadParties();
+            alert('✅ Party added!');
+        }
+
+        function editPartyModal(partyId) {
+            const parties = getParties();
+            const party = parties[partyId];
+            
+            document.getElementById('editPartyNameInput').value = party.name;
+            document.getElementById('editPartyMobileInput').value = party.mobile || '';
+            document.getElementById('editPartyAddressInput').value = party.address || '';
+            
+            window.currentEditPartyId = partyId;
+            document.getElementById('editPartyModal').classList.add('active');
+        }
+
+        function savePartyDetails() {
+            const partyId = window.currentEditPartyId;
+            const name = document.getElementById('editPartyNameInput').value;
+            const mobile = document.getElementById('editPartyMobileInput').value;
+            const address = document.getElementById('editPartyAddressInput').value;
+            
+            if(!name) return alert('Enter party name!');
+            
+            const parties = getParties();
+            parties[partyId] = { 
+                ...parties[partyId],
+                name, 
+                mobile, 
+                address 
+            };
+            saveParties(parties);
+            closeModal();
+            loadParties();
+            alert('✅ Party updated!');
+        }
+
+        function saveDesign() {
+            const name = document.getElementById('designNameInput').value;
+            if(!name) return alert('Enter design name!');
+            if(!currentParty) return alert('Select a party first!');
+            
+            const designs = getDesigns(currentParty.id);
+            const id = Date.now().toString();
+            designs[id] = { name };
+            saveDesigns(currentParty.id, designs);
+            closeModal();
+            document.getElementById('designNameInput').value = '';
+            openParty(currentParty.id, currentParty.name);
+            alert('✅ Design added!');
+        }
+
+        function editDesignModal(designId, designName) {
+            document.getElementById('editDesignNameInput').value = designName;
+            window.currentEditDesignId = designId;
+            document.getElementById('editDesignModal').classList.add('active');
+        }
+
+        function saveDesignDetails() {
+            const designId = window.currentEditDesignId;
+            const name = document.getElementById('editDesignNameInput').value;
+            
+            if(!name) return alert('Enter design name!');
+            
+            const designs = getDesigns(currentParty.id);
+            designs[designId].name = name;
+            saveDesigns(currentParty.id, designs);
+            closeModal();
+            openParty(currentParty.id, currentParty.name);
+            alert('✅ Design updated!');
+        }
+
         function saveGroup() {
-            let n = document.getElementById('groupName').value.trim();
-            if(!n) { alert('Enter name'); return; }
-            let gs = JSON.parse(localStorage.getItem('groups') || '[]');
-            gs.push({id: Date.now(), n, msgs: []});
-            localStorage.setItem('groups', JSON.stringify(gs));
-            closeModal('groupModal');
+            const name = document.getElementById('groupNameInput').value;
+            if(!name) return alert('Enter group name!');
+            
+            const groups = JSON.parse(localStorage.getItem('groups') || '{}');
+            const id = Date.now().toString();
+            groups[id] = { name };
+            localStorage.setItem('groups', JSON.stringify(groups));
+            closeModal();
+            document.getElementById('groupNameInput').value = '';
             loadGroups();
-        }
-        function openGroup(id, n) {
-            g = {id, n};
-            document.getElementById('chat').classList.remove('active');
-            document.getElementById('chatDetail').classList.add('active');
-            loadMsgs();
-        }
-        function sendMsg() {
-            let t = document.getElementById('msgText').value;
-            if(!t) return;
-            let gs = JSON.parse(localStorage.getItem('groups') || '[]');
-            let gx = gs.find(x => x.id == g.id);
-            gx.msgs.push({t, time: new Date().toLocaleString()});
-            localStorage.setItem('groups', JSON.stringify(gs));
-            document.getElementById('msgText').value = '';
-            loadMsgs();
-        }
-        function loadMsgs() {
-            let gx = JSON.parse(localStorage.getItem('groups') || '[]').find(x => x.id == g.id);
-            let h = '';
-            if(gx && gx.msgs) gx.msgs.forEach(x => h += `<div style="background:#e8f4f8;padding:8px;border-radius:3px;margin-bottom:5px;"><b>${x.t}</b><br><small>${x.time}</small></div>`);
-            document.getElementById('msgsDiv').innerHTML = h;
+            alert('✅ Group created!');
         }
 
-        // REGISTER
-        function loadRegParties() {
-            let ps = JSON.parse(localStorage.getItem('parties') || '[]');
-            let h = '';
-            ps.forEach(x => h += `<div class="item" onclick="openRegParty('${x.id}','${x.n}')"><div>📋 ${x.n}</div></div>`);
-            document.getElementById('regPartiesDiv').innerHTML = h;
-        }
-        function openRegParty(id, n) {
-            rp = {id, n};
-            document.getElementById('register').classList.remove('active');
-            document.getElementById('registerDetail').classList.add('active');
-            document.getElementById('regTitle').textContent = n;
-            drawRegister();
-        }
-        function drawRegister() {
-            let rs = JSON.parse(localStorage.getItem(`reg_${rp.id}`) || '[]');
-            let df = document.getElementById('regDateF').value.toLowerCase();
-            let dsf = document.getElementById('regDispatchF').value;
-            let h = '';
-            rs.forEach((x, i) => {
-                if((df && !x.date.toLowerCase().includes(df)) || (dsf && x.dispatch.toString() !== dsf)) return;
-                h += `<tr><td>${x.date}</td><td>${x.dispatch}</td><td>${x.type}</td><td>${x.ret}</td><td><button onclick="delReg(${i})" style="background:#e74c3c;width:auto;margin:0;padding:5px;">🗑️</button></td></tr>`;
-            });
-            document.getElementById('regBody').innerHTML = h;
-        }
-        function openAddReg() { document.getElementById('regDate').value = ''; document.getElementById('regDispatch').value = ''; document.getElementById('regModal').classList.add('active'); }
-        function saveReg() {
-            let date = document.getElementById('regDate').value, dispatch = parseInt(document.getElementById('regDispatch').value), type = document.getElementById('regType').value, ret = parseInt(document.getElementById('regReturn').value);
-            if(!date || !dispatch) { alert('Fill all'); return; }
-            let rs = JSON.parse(localStorage.getItem(`reg_${rp.id}`) || '[]');
-            rs.push({date, dispatch, type, ret});
-            localStorage.setItem(`reg_${rp.id}`, JSON.stringify(rs));
-            closeModal('regModal');
-            drawRegister();
-        }
-        function delReg(i) {
-            if(!confirm('Delete?')) return;
-            let rs = JSON.parse(localStorage.getItem(`reg_${rp.id}`) || '[]');
-            rs.splice(i, 1);
-            localStorage.setItem(`reg_${rp.id}`, JSON.stringify(rs));
-            drawRegister();
+        function getTailors() {
+            return JSON.parse(localStorage.getItem('tailors') || '{}');
         }
 
-        // DAYBOOK
-        function loadDbParties() {
-            let ps = JSON.parse(localStorage.getItem('parties') || '[]');
-            let h = '';
-            ps.forEach(x => h += `<div class="item" onclick="openDbParty('${x.id}','${x.n}')"><div>📖 ${x.n}</div></div>`);
-            document.getElementById('dbPartiesDiv').innerHTML = h;
-        }
-        function openDbParty(id, n) {
-            dp = {id, n};
-            document.getElementById('daybook').classList.remove('active');
-            document.getElementById('daybookDetail').classList.add('active');
-            document.getElementById('dbTitle').textContent = n;
-            drawDaybook();
-        }
-        function drawDaybook() {
-            let dbs = JSON.parse(localStorage.getItem(`db_${dp.id}`) || '[]');
-            let dtf = document.getElementById('dbDateF').value.toLowerCase();
-            let pf = document.getElementById('dbPcsF').value;
-            let dnf = document.getElementById('dbDesignF').value.toLowerCase();
-            let h = '';
-            dbs.forEach((x, i) => {
-                if((dtf && !x.date.toLowerCase().includes(dtf)) || (pf && x.pcs.toString() !== pf) || (dnf && !x.design.toLowerCase().includes(dnf))) return;
-                h += `<tr><td>${x.date}</td><td>${x.pcs}</td><td>${x.design}</td><td><button onclick="delDb(${i})" style="background:#e74c3c;width:auto;margin:0;padding:5px;">🗑️</button></td></tr>`;
-            });
-            document.getElementById('dbBody').innerHTML = h;
-        }
-        function openAddDb() { document.getElementById('dbDate').value = ''; document.getElementById('dbPcs').value = ''; document.getElementById('dbDesign').value = ''; document.getElementById('dbModal').classList.add('active'); }
-        function saveDb() {
-            let date = document.getElementById('dbDate').value, pcs = parseInt(document.getElementById('dbPcs').value), design = document.getElementById('dbDesign').value;
-            if(!date || !pcs || !design) { alert('Fill all'); return; }
-            let dbs = JSON.parse(localStorage.getItem(`db_${dp.id}`) || '[]');
-            dbs.push({date, pcs, design});
-            localStorage.setItem(`db_${dp.id}`, JSON.stringify(dbs));
-            closeModal('dbModal');
-            drawDaybook();
-        }
-        function delDb(i) {
-            if(!confirm('Delete?')) return;
-            let dbs = JSON.parse(localStorage.getItem(`db_${dp.id}`) || '[]');
-            dbs.splice(i, 1);
-            localStorage.setItem(`db_${dp.id}`, JSON.stringify(dbs));
-            drawDaybook();
+        function editTailor(size) {
+            editingCell = { size };
+            document.getElementById('editTailorLabel').textContent = `Tailor for ${size}:`;
+            const sheet = getSheet(currentParty.id, currentDesign.id);
+            document.getElementById('tailorInput').value = sheet.data[`${size}_tailor`] || '';
+            document.getElementById('editTailorModal').classList.add('active');
         }
 
-        // REMINDERS
-        function loadReminders() {
-            let rs = JSON.parse(localStorage.getItem('reminders') || '[]');
-            let h = '';
-            rs.forEach((x, i) => {
-                h += `<div style="background:white;padding:10px;border-radius:5px;margin-bottom:10px;">
-                    <div><b>${x.task}</b> ${x.voice?'🎤':''}</div>
-                    <div style="font-size:11px;color:#999;">Date: ${x.date}</div>
-                    <div style="display:flex;gap:5px;margin-top:5px;">
-                        ${x.voice?`<button onclick="playVoice2(${i})" style="flex:1;padding:5px;background:#27ae60;font-size:10px;">▶️</button>`:''}
-                        <button onclick="delRem(${i})" style="flex:1;padding:5px;background:#e74c3c;font-size:10px;">🗑️</button>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('remDiv').innerHTML = h || '<p>No reminders</p>';
+        function saveTailorName() {
+            const tailorName = document.getElementById('tailorInput').value || '-';
+            const sheet = getSheet(currentParty.id, currentDesign.id);
+            sheet.data[`${editingCell.size}_tailor`] = tailorName;
+            saveSheet(currentParty.id, currentDesign.id, sheet);
+            closeModal();
+            openDesign(currentDesign.id, currentDesign.name);
+            alert('✅ Tailor updated!');
         }
-        function openAddRem() { document.getElementById('remText').value = ''; document.getElementById('remDate').value = ''; voiceData = null; updateVoiceUI(); document.getElementById('remModal').classList.add('active'); }
-        function saveRem() {
-            let task = document.getElementById('remText').value, date = document.getElementById('remDate').value;
-            if(!task || !date) { alert('Fill all'); return; }
-            let rs = JSON.parse(localStorage.getItem('reminders') || '[]');
-            rs.push({task, date, voice: voiceData});
-            localStorage.setItem('reminders', JSON.stringify(rs));
-            closeModal('remModal');
-            loadReminders();
+
+        function showAddDateModal() {
+            document.getElementById('addDateModal').classList.add('active');
         }
-        function delRem(i) {
-            if(!confirm('Delete?')) return;
-            let rs = JSON.parse(localStorage.getItem('reminders') || '[]');
-            rs.splice(i, 1);
-            localStorage.setItem('reminders', JSON.stringify(rs));
-            loadReminders();
+
+        function saveNewDate() {
+            const newDate = document.getElementById('newDateInput').value;
+            if(!newDate) return alert('Enter date!');
+            
+            const sheet = getSheet(currentParty.id, currentDesign.id);
+            if(!sheet.dates.includes(newDate)) {
+                sheet.dates.push(newDate);
+                saveSheet(currentParty.id, currentDesign.id, sheet);
+            }
+            
+            closeModal();
+            document.getElementById('newDateInput').value = '';
+            openDesign(currentDesign.id, currentDesign.name);
+            alert('✅ Date added!');
         }
-        function toggleVoice() {
-            if(document.getElementById('voiceBtn').textContent.includes('Start')) startVoice();
-            else stopVoice();
+
+        function editDate(idx, oldDate) {
+            // Store the editing info
+            window.sheetDateEditIndex = idx;
+            window.sheetDateEditOldDate = oldDate;
+            
+            // Fill modal with current values
+            document.getElementById('sheetOldDate').value = oldDate;
+            document.getElementById('sheetNewDate').value = oldDate;
+            document.getElementById('sheetNewDate').focus();
+            document.getElementById('sheetNewDate').select();
+            
+            // Show modal
+            document.getElementById('editSheetDateModal').classList.add('active');
         }
-        function startVoice() {
-            navigator.mediaDevices.getUserMedia({audio: true}).then(s => {
-                mediaRec = new MediaRecorder(s);
-                let ch = [];
-                mediaRec.ondataavailable = e => ch.push(e.data);
-                mediaRec.onstop = () => {
-                    let b = new Blob(ch, {type: 'audio/webm'});
-                    let fr = new FileReader();
-                    fr.onload = () => { voiceData = fr.result; updateVoiceUI(); document.getElementById('voiceStatus').textContent = '✅ Recorded'; };
-                    fr.readAsDataURL(b);
-                };
-                mediaRec.start();
-                document.getElementById('voiceBtn').textContent = '⏹️ Stop';
-                document.getElementById('voiceStatus').textContent = '🔴 Recording...';
-            });
-        }
-        function stopVoice() {
-            if(mediaRec) {
-                mediaRec.stop();
-                mediaRec.stream.getTracks().forEach(t => t.stop());
-                document.getElementById('voiceBtn').textContent = '🎙️ Start';
+
+        function saveSheetDateEdit() {
+            const oldDate = window.sheetDateEditOldDate;
+            const idx = window.sheetDateEditIndex;
+            const newDate = document.getElementById('sheetNewDate').value;
+            
+            if(!newDate || newDate.trim() === '') {
+                alert('❌ Please enter a new date!');
+                return;
+            }
+            
+            if(newDate === oldDate) {
+                closeModal();
+                return;
+            }
+            
+            try {
+                const sheet = getSheet(currentParty.id, currentDesign.id);
+                
+                console.log('Editing sheet date:', { oldDate, newDate, idx });
+                
+                // Update dates array
+                sheet.dates[idx] = newDate;
+                
+                // Update all data keys with new date
+                const newData = {};
+                Object.keys(sheet.data).forEach(key => {
+                    if(key.includes(oldDate)) {
+                        const newKey = key.replace(oldDate, newDate);
+                        newData[newKey] = sheet.data[key];
+                    } else {
+                        newData[key] = sheet.data[key];
+                    }
+                });
+                sheet.data = newData;
+                
+                console.log('Updated sheet data:', sheet);
+                
+                saveSheet(currentParty.id, currentDesign.id, sheet);
+                closeModal();
+                openDesign(currentDesign.id, currentDesign.name);
+                alert('✅ Date updated successfully!');
+            } catch(error) {
+                console.error('Error updating date:', error);
+                alert('❌ Error: ' + error.message);
             }
         }
-        function updateVoiceUI() {
-            document.getElementById('playBtn').style.display = voiceData ? 'block' : 'none';
-            document.getElementById('clearBtn').style.display = voiceData ? 'block' : 'none';
-        }
-        function playVoice() { if(voiceData) new Audio(voiceData).play(); }
-        function clearVoice() { voiceData = null; updateVoiceUI(); document.getElementById('voiceStatus').textContent = ''; }
-        function playVoice2(i) { let rs = JSON.parse(localStorage.getItem('reminders') || '[]')[i]; if(rs.voice) new Audio(rs.voice).play(); }
 
-        window.addEventListener('load', loadParties);
+        function deleteDate(idx, dateToDelete) {
+            if(!confirm(`Delete date "${dateToDelete}" and all related data?`)) return;
+            
+            try {
+                const sheet = getSheet(currentParty.id, currentDesign.id);
+                
+                console.log('Deleting date:', { idx, dateToDelete });
+                
+                // Remove from dates array
+                sheet.dates.splice(idx, 1);
+                
+                // Remove all data with this date
+                const newData = {};
+                Object.keys(sheet.data).forEach(key => {
+                    if(!key.includes(dateToDelete)) {
+                        newData[key] = sheet.data[key];
+                    }
+                });
+                sheet.data = newData;
+                
+                console.log('Updated sheet after delete:', sheet);
+                
+                saveSheet(currentParty.id, currentDesign.id, sheet);
+                openDesign(currentDesign.id, currentDesign.name);
+                alert('✅ Date deleted!');
+            } catch(error) {
+                console.error('Error deleting date:', error);
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        // ✅ SYNC SHEET TO REGISTER FUNCTION
+        function syncSheetToRegister() {
+            console.log('Sync button clicked!');
+            
+            if(!currentParty || !currentDesign) {
+                alert('❌ Please select a design first!');
+                return;
+            }
+            
+            console.log('Current party:', currentParty);
+            console.log('Current design:', currentDesign);
+            
+            try {
+                const sheet = getSheet(currentParty.id, currentDesign.id);
+                let registerRecords = getRegisterRecords(currentParty.id, currentDesign.id);
+                
+                console.log('Starting sync - Sheet data:', sheet);
+                console.log('Starting sync - Register records before:', registerRecords);
+                
+                if(!sheet.dates || sheet.dates.length === 0) {
+                    alert('❌ No dates found in sheet!');
+                    return;
+                }
+                
+                let syncCount = 0;
+                let detailedLog = '';
+                
+                // For each date in sheet, calculate total and sync
+                sheet.dates.forEach(date => {
+                    let totalDispatch = 0;
+                    
+                    // Calculate total dispatch for this date from all sizes
+                    sheet.sizes.forEach(size => {
+                        const key = `${size}_${date}`;
+                        const val = parseInt(sheet.data[key]) || 0;
+                        totalDispatch += val;
+                    });
+                    
+                    console.log(`Processing date: ${date}, total: ${totalDispatch}`);
+                    detailedLog += `\n${date}: ${totalDispatch} pcs`;
+                    
+                    // Check if record already exists for this date
+                    const existingIndex = registerRecords.findIndex(rec => rec.date === date);
+                    
+                    if(existingIndex !== -1) {
+                        // Update existing record
+                        registerRecords[existingIndex].pcs = totalDispatch;
+                        console.log(`✏️ Updated existing record for ${date}`);
+                    } else {
+                        // Add new record if there's dispatch data
+                        if(totalDispatch > 0) {
+                            registerRecords.push({
+                                date: date,
+                                pcs: totalDispatch,
+                                set: 0,
+                                cordset: 0,
+                                return: 0
+                            });
+                            console.log(`➕ Added new record for ${date}`);
+                        }
+                    }
+                    
+                    if(totalDispatch > 0) {
+                        syncCount++;
+                    }
+                });
+                
+                console.log('Register records after sync:', registerRecords);
+                
+                // Save updated records to register
+                saveRegisterRecords(currentParty.id, currentDesign.id, registerRecords);
+                console.log('✅ Data saved to localStorage');
+                
+                alert(`✅ Synced successfully!\n${syncCount} dates synced to Register.${detailedLog}`);
+                
+            } catch(error) {
+                console.error('Error syncing to register:', error);
+                alert('❌ Error syncing: ' + error.message);
+            }
+        }
+
+        // REGISTER FUNCTIONS - SIMPLIFIED
+        let currentRegisterPartyId = null;
+        let currentRegisterDesignId = null;
+        let currentRegisterDesigns = [];
+        let currentRegisterDesignIndex = 0;
+
+        function loadRegisterParties() {
+            const parties = getParties();
+            const html = Object.keys(parties).length ? Object.keys(parties).map(id => `
+                <div class="item" onclick="openRegisterParty('${id}', '${parties[id].name}')">
+                    <div class="item-title">📋 ${parties[id].name}</div>
+                    <div class="item-sub">Tap to view register</div>
+                </div>
+            `).join('') : '<p style="padding: 20px; text-align: center; color: #999;">No parties yet.</p>';
+            
+            document.getElementById('registerPartyList').innerHTML = html;
+        }
+
+        function openRegisterParty(partyId, partyName) {
+            currentRegisterPartyId = partyId;
+            currentParty = { id: partyId, name: partyName };
+            
+            const designs = getDesigns(partyId);
+            currentRegisterDesigns = Object.keys(designs).map(dId => ({ id: dId, name: designs[dId].name }));
+            
+            if(currentRegisterDesigns.length === 0) {
+                alert('No designs found for this party!');
+                return;
+            }
+            
+            currentRegisterDesignIndex = 0;
+            document.getElementById('registerPage').classList.remove('active');
+            document.getElementById('registerDetailPage').classList.add('active');
+            document.querySelector('header h1').textContent = `📋 ${partyName}`;
+            
+            showRegisterDesign(0);
+        }
+
+        function showRegisterDesign(index) {
+            if(index < 0 || index >= currentRegisterDesigns.length) return;
+            
+            currentRegisterDesignIndex = index;
+            const design = currentRegisterDesigns[index];
+            currentRegisterDesignId = design.id;
+            
+            document.getElementById('registerDesignName').textContent = `Design: ${design.name}`;
+            
+            const records = getRegisterRecords(currentRegisterPartyId, design.id);
+            let total = 0;
+            let totalReturn = 0;
+            
+            let html = '';
+            records.forEach((rec, idx) => {
+                const pcs = parseInt(rec.pcs) || 0;
+                const set = parseInt(rec.set) || 0;
+                const cordset = parseInt(rec.cordset) || 0;
+                const ret = parseInt(rec.return) || 0;
+                
+                // Calculate total based on which value exists
+                let dispatchValue = 0;
+                let dispatchType = '-';
+                if(pcs > 0) { dispatchValue = pcs; dispatchType = 'PCS'; }
+                else if(set > 0) { dispatchValue = set; dispatchType = 'SET'; }
+                else if(cordset > 0) { dispatchValue = cordset; dispatchType = 'CORD SET'; }
+                
+                total += dispatchValue;
+                totalReturn += ret;
+                
+                html += `
+                    <tr>
+                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; cursor: pointer; background: #fff9e6;" onclick="editDateOnly(${idx}, 'register')"><strong>${rec.date}</strong><br><small style="font-size: 9px; color: #999;">Click to edit</small></td>
+                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${dispatchValue} <br><small style="font-size: 10px; color: #666;">${dispatchType}</small></td>
+                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">
+                            <button onclick="editRegisterRecord(${idx})" style="background: #3498db; padding: 5px 10px; font-size: 11px; width: auto;">✏️</button>
+                        </td>
+                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">
+                            <button onclick="deleteRegisterRecord(${idx})" style="background: #e74c3c; padding: 5px 10px; font-size: 11px; width: auto;">🗑️</button>
+                        </td>
+                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${ret}</td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('registerTableBody').innerHTML = html;
+            document.getElementById('registerTotal').textContent = total;
+            document.getElementById('registerReturnTotal').textContent = totalReturn;
+            
+            // Navigation buttons
+            let navHtml = '';
+            if(currentRegisterDesignIndex > 0) {
+                navHtml += `<button onclick="showRegisterDesign(${currentRegisterDesignIndex - 1})" style="background: #3498db; padding: 6px 12px; font-size: 12px; width: auto;">← Previous</button>`;
+            }
+            if(currentRegisterDesignIndex < currentRegisterDesigns.length - 1) {
+                navHtml += `<button onclick="showRegisterDesign(${currentRegisterDesignIndex + 1})" style="background: #3498db; padding: 6px 12px; font-size: 12px; width: auto;">Next →</button>`;
+            }
+            document.getElementById('designNavigationButtons').innerHTML = navHtml;
+        }
+
+        function getRegisterRecords(partyId, designId) {
+            return JSON.parse(localStorage.getItem(`registerRecords_${partyId}_${designId}`) || '[]');
+        }
+
+        function saveRegisterRecords(partyId, designId, records) {
+            localStorage.setItem(`registerRecords_${partyId}_${designId}`, JSON.stringify(records));
+        }
+
+        function showAddRegisterRecordModal() {
+            // ✅ Reset form
+            document.getElementById('registerRecordDate').value = '';
+            document.getElementById('registerRecordPCS').value = '';
+            document.getElementById('registerRecordSET').value = '';
+            document.getElementById('registerRecordCORDSET').value = '';
+            document.getElementById('registerRecordReturn').value = '';
+            
+            // ✅ Reset modal title
+            document.getElementById('addRegisterRecordModal').querySelector('h2').textContent = '➕ Add Entry';
+            
+            // ✅ Clear editing index
+            window.editingRegisterIndex = undefined;
+            
+            // ✅ Show modal
+            document.getElementById('addRegisterRecordModal').classList.add('active');
+        }
+
+        function saveRegisterRecord() {
+            const date = document.getElementById('registerRecordDate').value;
+            const pcs = document.getElementById('registerRecordPCS').value || '0';
+            const set = document.getElementById('registerRecordSET').value || '0';
+            const cordset = document.getElementById('registerRecordCORDSET').value || '0';
+            const ret = document.getElementById('registerRecordReturn').value || '0';
+            
+            if(!date) return alert('Fill date!');
+            if(!pcs && !set && !cordset) return alert('Fill at least one dispatch type!');
+            
+            const records = getRegisterRecords(currentRegisterPartyId, currentRegisterDesignId);
+            
+            if(window.editingRegisterIndex !== undefined) {
+                records[window.editingRegisterIndex] = { date, pcs, set, cordset, return: ret };
+                window.editingRegisterIndex = undefined;
+            } else {
+                records.push({ date, pcs, set, cordset, return: ret });
+            }
+            
+            saveRegisterRecords(currentRegisterPartyId, currentRegisterDesignId, records);
+            
+            closeModal();
+            document.getElementById('registerRecordDate').value = '';
+            document.getElementById('registerRecordPCS').value = '';
+            document.getElementById('registerRecordSET').value = '';
+            document.getElementById('registerRecordCORDSET').value = '';
+            document.getElementById('registerRecordReturn').value = '';
+            
+            showRegisterDesign(currentRegisterDesignIndex);
+            alert('✅ Entry saved!');
+        }
+
+        function editRegisterRecord(idx) {
+            const records = getRegisterRecords(currentRegisterPartyId, currentRegisterDesignId);
+            const rec = records[idx];
+            
+            // ✅ Populate form with existing data
+            document.getElementById('registerRecordDate').value = rec.date || '';
+            document.getElementById('registerRecordPCS').value = rec.pcs || '0';
+            document.getElementById('registerRecordSET').value = rec.set || '0';
+            document.getElementById('registerRecordCORDSET').value = rec.cordset || '0';
+            document.getElementById('registerRecordReturn').value = rec.return || '0';
+            
+            // ✅ Update modal title to show we're editing
+            const modal = document.getElementById('addRegisterRecordModal');
+            modal.querySelector('h2').textContent = '✏️ Edit Entry';
+            
+            // ✅ Store index for saving later
+            window.editingRegisterIndex = idx;
+            
+            // ✅ Show modal
+            modal.classList.add('active');
+        }
+
+        function deleteRegisterRecord(idx) {
+            const records = getRegisterRecords(currentRegisterPartyId, currentRegisterDesignId);
+            records.splice(idx, 1);
+            saveRegisterRecords(currentRegisterPartyId, currentRegisterDesignId, records);
+            showRegisterDesign(currentRegisterDesignIndex);
+            alert('✅ Entry deleted!');
+        }
+
+        // ✅ EDIT DATE ONLY FUNCTION
+        function editDateOnly(idx, type) {
+            // Get the current data
+            let currentDate = '';
+            
+            console.log('Opening date edit for:', { idx, type, currentRegisterPartyId, currentRegisterDesignId, currentDaybookPartyId });
+            
+            try {
+                if(type === 'register') {
+                    const records = getRegisterRecords(currentRegisterPartyId, currentRegisterDesignId);
+                    console.log('Register records:', records);
+                    if(records[idx]) {
+                        currentDate = records[idx].date;
+                    }
+                } else if(type === 'daybook') {
+                    const entries = getDaybookEntries(currentDaybookPartyId);
+                    console.log('Daybook entries:', entries);
+                    if(entries[idx]) {
+                        currentDate = entries[idx].date;
+                    }
+                }
+                
+                if(!currentDate) {
+                    console.error('Date not found for index:', idx);
+                    alert('❌ Could not load date. Try refreshing the page.');
+                    return;
+                }
+            } catch(error) {
+                console.error('Error fetching date:', error);
+                alert('❌ Error loading date: ' + error.message);
+                return;
+            }
+            
+            // Store the current info
+            window.currentDateEditIndex = idx;
+            window.currentDateEditType = type;
+            
+            // Fill modal with current date
+            document.getElementById('editDateInput').value = currentDate;
+            
+            console.log('Modal data set to:', currentDate);
+            
+            // Show modal
+            document.getElementById('editDateModal').classList.add('active');
+        }
+
+        // ✅ SET QUICK DATE
+        function setQuickDate(type) {
+            const today = new Date();
+            let dateStr = '';
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            if(type === 'Today') {
+                dateStr = today.getDate() + ' ' + months[today.getMonth()];
+            } else if(type === 'Yesterday') {
+                const yesterday = new Date(today.getTime() - 24*60*60*1000);
+                dateStr = yesterday.getDate() + ' ' + months[yesterday.getMonth()];
+            } else if(type === 'Tomorrow') {
+                const tomorrow = new Date(today.getTime() + 24*60*60*1000);
+                dateStr = tomorrow.getDate() + ' ' + months[tomorrow.getMonth()];
+            } else if(type === 'Last Week') {
+                const lastWeek = new Date(today.getTime() - 7*24*60*60*1000);
+                dateStr = lastWeek.getDate() + ' ' + months[lastWeek.getMonth()];
+            }
+            
+            document.getElementById('editDateInput').value = dateStr;
+            document.getElementById('editDateInput').focus();
+        }
+
+        // ✅ SAVE EDITED DATE
+        function saveEditedDate() {
+            const newDate = document.getElementById('editDateInput').value;
+            
+            if(!newDate.trim()) {
+                alert('❌ Date cannot be empty!');
+                return;
+            }
+            
+            const idx = window.currentDateEditIndex;
+            const type = window.currentDateEditType;
+            
+            console.log('Saving date:', { idx, type, newDate, currentRegisterPartyId, currentRegisterDesignId, currentDaybookPartyId });
+            
+            try {
+                if(type === 'register') {
+                    if(!currentRegisterPartyId || !currentRegisterDesignId) {
+                        console.error('Missing party or design ID:', { currentRegisterPartyId, currentRegisterDesignId });
+                        alert('❌ Error: Party or Design not found!');
+                        return;
+                    }
+                    
+                    const records = getRegisterRecords(currentRegisterPartyId, currentRegisterDesignId);
+                    console.log('Current records before update:', records);
+                    
+                    if(idx < 0 || idx >= records.length) {
+                        alert('❌ Error: Record not found!');
+                        return;
+                    }
+                    
+                    records[idx].date = newDate;
+                    console.log('Records after update:', records);
+                    
+                    saveRegisterRecords(currentRegisterPartyId, currentRegisterDesignId, records);
+                    showRegisterDesign(currentRegisterDesignIndex);
+                    
+                } else if(type === 'daybook') {
+                    if(!currentDaybookPartyId) {
+                        console.error('Missing daybook party ID');
+                        alert('❌ Error: Party not found!');
+                        return;
+                    }
+                    
+                    const entries = getDaybookEntries(currentDaybookPartyId);
+                    console.log('Current entries before update:', entries);
+                    
+                    if(idx < 0 || idx >= entries.length) {
+                        alert('❌ Error: Entry not found!');
+                        return;
+                    }
+                    
+                    entries[idx].date = newDate;
+                    console.log('Entries after update:', entries);
+                    
+                    saveDaybookEntries(currentDaybookPartyId, entries);
+                    loadDaybookEntries(currentDaybookPartyId);
+                }
+                
+                closeModal();
+                alert('✅ Date updated successfully!');
+            } catch(error) {
+                console.error('Error updating date:', error);
+                alert('❌ Error updating date: ' + error.message);
+            }
+        }
+
+        // DAY BOOK FUNCTIONS
+        let currentDaybookPartyId = null;
+
+        function loadDaybookParties() {
+            const parties = getParties();
+            const html = Object.keys(parties).length ? Object.keys(parties).map(id => `
+                <div class="item" onclick="openDaybookParty('${id}', '${parties[id].name}')">
+                    <div class="item-title">📖 ${parties[id].name}</div>
+                    <div class="item-sub">Tap to view day book</div>
+                </div>
+            `).join('') : '<p style="padding: 20px; text-align: center; color: #999;">No parties yet.</p>';
+            
+            document.getElementById('daybookPartyList').innerHTML = html;
+        }
+
+        function openDaybookParty(partyId, partyName) {
+            currentDaybookPartyId = partyId;
+            document.getElementById('daybookPage').classList.remove('active');
+            document.getElementById('daybookDetailPage').classList.add('active');
+            document.getElementById('daybookPartyName').textContent = `📖 ${partyName} - Day Book`;
+            document.querySelector('header h1').textContent = `📖 ${partyName}`;
+            
+            loadDaybookEntries(partyId);
+        }
+
+        function loadDaybookEntries(partyId) {
+            const entries = getDaybookEntries(partyId);
+            
+            let html = '';
+            entries.forEach((entry, idx) => {
+                html += `
+                    <tr>
+                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; cursor: pointer; background: #fff9e6;" onclick="editDateOnly(${idx}, 'daybook')"><strong>${entry.date}</strong><br><small style="font-size: 9px; color: #999;">Click to edit</small></td>
+                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${entry.pcs}</td>
+                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${entry.design}</td>
+                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">
+                            <button onclick="editDaybookEntry(${idx})" style="background: #3498db; padding: 5px 10px; font-size: 11px; width: auto;">✏️</button>
+                        </td>
+                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">
+                            <button onclick="deleteDaybookEntry(${idx})" style="background: #e74c3c; padding: 5px 10px; font-size: 11px; width: auto;">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('daybookTableBody').innerHTML = html;
+        }
+
+        function getDaybookEntries(partyId) {
+            return JSON.parse(localStorage.getItem(`daybookEntries_${partyId}`) || '[]');
+        }
+
+        function saveDaybookEntries(partyId, entries) {
+            localStorage.setItem(`daybookEntries_${partyId}`, JSON.stringify(entries));
+        }
+
+        function showAddDaybookEntryModal() {
+            const today = new Date();
+            const date = today.getDate() + ' ' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][today.getMonth()];
+            
+            // ✅ Reset form
+            document.getElementById('daybookEntryDate').value = date;
+            document.getElementById('daybookEntryPcs').value = '';
+            document.getElementById('daybookEntryDesign').value = '';
+            
+            // ✅ Reset modal title
+            document.getElementById('addDaybookEntryModal').querySelector('h2').textContent = '➕ Add Day Book Entry';
+            
+            // ✅ Clear editing index
+            window.editingDaybookIndex = undefined;
+            
+            // ✅ Show modal
+            document.getElementById('addDaybookEntryModal').classList.add('active');
+        }
+
+        function saveDaybookEntry() {
+            const date = document.getElementById('daybookEntryDate').value;
+            const pcs = document.getElementById('daybookEntryPcs').value;
+            const design = document.getElementById('daybookEntryDesign').value;
+            
+            if(!date || !pcs || !design) return alert('Fill all fields!');
+            
+            const entries = getDaybookEntries(currentDaybookPartyId);
+            
+            if(window.editingDaybookIndex !== undefined) {
+                entries[window.editingDaybookIndex] = { date, pcs, design };
+                window.editingDaybookIndex = undefined;
+            } else {
+                entries.push({ date, pcs, design });
+            }
+            
+            saveDaybookEntries(currentDaybookPartyId, entries);
+            closeModal();
+            loadDaybookEntries(currentDaybookPartyId);
+            alert('✅ Entry saved!');
+        }
+
+        function editDaybookEntry(idx) {
+            const entries = getDaybookEntries(currentDaybookPartyId);
+            const entry = entries[idx];
+            
+            // ✅ Populate form with existing data
+            document.getElementById('daybookEntryDate').value = entry.date || '';
+            document.getElementById('daybookEntryPcs').value = entry.pcs || '';
+            document.getElementById('daybookEntryDesign').value = entry.design || '';
+            
+            // ✅ Update modal title
+            const modal = document.getElementById('addDaybookEntryModal');
+            modal.querySelector('h2').textContent = '✏️ Edit Day Book Entry';
+            
+            // ✅ Store index for saving later
+            window.editingDaybookIndex = idx;
+            
+            // ✅ Show modal
+            modal.classList.add('active');
+        }
+
+        function deleteDaybookEntry(idx) {
+            if(!confirm('Delete this entry?')) return;
+            
+            const entries = getDaybookEntries(currentDaybookPartyId);
+            entries.splice(idx, 1);
+            saveDaybookEntries(currentDaybookPartyId, entries);
+            loadDaybookEntries(currentDaybookPartyId);
+            alert('✅ Entry deleted!');
+        }
+
+        // Initial load
+        window.addEventListener('load', () => {
+            loadParties();
+            console.log('✅ Factory ERP App Loaded - NO ERRORS!');
+            
+            // Register Service Worker for PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        console.log('✅ Service Worker registered:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            }
+        });
     </script>
 </body>
 </html>
