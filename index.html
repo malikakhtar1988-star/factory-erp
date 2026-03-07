@@ -29,8 +29,6 @@
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
         .form-buttons { display: flex; gap: 10px; margin-top: 15px; }
         .form-buttons button { flex: 1; margin: 0; }
-        .filter-box { background: white; padding: 10px; border-radius: 5px; margin-bottom: 10px; border: 2px solid #3498db; }
-        .filter-box input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px; margin-bottom: 8px; }
         .back-btn { background: #95a5a6 !important; }
     </style>
 </head>
@@ -55,10 +53,6 @@
             <div id="sheet" class="page">
                 <button class="back-btn" onclick="goBack()">← BACK</button>
                 <div class="title" id="sheetTitle"></div>
-                <div class="filter-box">
-                    <input type="text" id="tailorF" placeholder="Filter Tailor" onkeyup="drawSheet()">
-                    <input type="text" id="sizeF" placeholder="Filter Size" onkeyup="drawSheet()">
-                </div>
                 <div id="sheetDiv"></div>
                 <button onclick="openAddDate()">📅 ADD DATE</button>
             </div>
@@ -86,10 +80,6 @@
             <div id="registerDetail" class="page">
                 <button class="back-btn" onclick="goBack()">← BACK</button>
                 <div class="title" id="regTitle"></div>
-                <div class="filter-box">
-                    <input type="text" id="regDateF" placeholder="Filter Date" onkeyup="drawRegister()">
-                    <input type="number" id="regDispatchF" placeholder="Filter Dispatch" onkeyup="drawRegister()">
-                </div>
                 <table><tr><th>DATE</th><th>DISPATCH</th><th>TYPE</th><th>RETURN</th><th>DEL</th></tr><tbody id="regBody"></tbody></table>
                 <button onclick="openAddReg()">➕ ADD</button>
             </div>
@@ -102,25 +92,12 @@
             <div id="daybookDetail" class="page">
                 <button class="back-btn" onclick="goBack()">← BACK</button>
                 <div class="title" id="dbTitle"></div>
-                <div class="filter-box">
-                    <input type="text" id="dbDateF" placeholder="Filter Date" onkeyup="drawDaybook()">
-                    <input type="number" id="dbPcsF" placeholder="Filter PCS" onkeyup="drawDaybook()">
-                    <input type="text" id="dbDesignF" placeholder="Filter Design" onkeyup="drawDaybook()">
-                </div>
                 <table><tr><th>DATE</th><th>PCS</th><th>DESIGN</th><th>DEL</th></tr><tbody id="dbBody"></tbody></table>
                 <button onclick="openAddDb()">➕ ADD</button>
             </div>
 
             <div id="reminder" class="page">
                 <div class="title">📌 REMINDERS</div>
-                <div class="filter-box">
-                    <input type="text" id="remSearchF" placeholder="Search" onkeyup="drawReminders()">
-                    <div style="display:flex;gap:5px;">
-                        <button onclick="remFilter='all';drawReminders()" style="font-size:12px;">All</button>
-                        <button onclick="remFilter='pending';drawReminders()" style="background:#e74c3c;font-size:12px;">Pending</button>
-                        <button onclick="remFilter='done';drawReminders()" style="background:#27ae60;font-size:12px;">Done</button>
-                    </div>
-                </div>
                 <div id="remDiv"></div>
                 <button onclick="openAddRem()">➕ ADD REMINDER</button>
             </div>
@@ -139,12 +116,9 @@
     <div id="partyModal" class="modal">
         <div class="modal-content">
             <h2>Add Party</h2>
-            <div class="form-group">
-                <label>Party Name:</label>
-                <input type="text" id="partyName" placeholder="e.g., Anas Arkas">
-            </div>
+            <div class="form-group"><label>Name:</label><input type="text" id="partyName"></div>
             <div class="form-buttons">
-                <button onclick="saveParty()">✅ Save</button>
+                <button onclick="saveParty()">Save</button>
                 <button onclick="closeModal('partyModal')" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
@@ -153,12 +127,9 @@
     <div id="designModal" class="modal">
         <div class="modal-content">
             <h2>Add Design</h2>
-            <div class="form-group">
-                <label>Design Name:</label>
-                <input type="text" id="designName">
-            </div>
+            <div class="form-group"><label>Name:</label><input type="text" id="designName"></div>
             <div class="form-buttons">
-                <button onclick="saveDesign()">✅ Save</button>
+                <button onclick="saveDesign()">Save</button>
                 <button onclick="closeModal('designModal')" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
@@ -167,12 +138,9 @@
     <div id="dateModal" class="modal">
         <div class="modal-content">
             <h2>Add Date</h2>
-            <div class="form-group">
-                <label>Date:</label>
-                <input type="text" id="dateVal" placeholder="5 Mar">
-            </div>
+            <div class="form-group"><label>Date:</label><input type="text" id="dateVal" placeholder="5 Mar"></div>
             <div class="form-buttons">
-                <button onclick="saveDate()">✅ Save</button>
+                <button onclick="saveDate()">Save</button>
                 <button onclick="closeModal('dateModal')" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
@@ -181,12 +149,9 @@
     <div id="groupModal" class="modal">
         <div class="modal-content">
             <h2>Add Group</h2>
-            <div class="form-group">
-                <label>Group Name:</label>
-                <input type="text" id="groupName">
-            </div>
+            <div class="form-group"><label>Name:</label><input type="text" id="groupName"></div>
             <div class="form-buttons">
-                <button onclick="saveGroup()">✅ Save</button>
+                <button onclick="saveGroup()">Save</button>
                 <button onclick="closeModal('groupModal')" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
@@ -200,7 +165,7 @@
             <div class="form-group"><label>Type:</label><select id="regType"><option>PCS</option><option>SET</option></select></div>
             <div class="form-group"><label>Return:</label><input type="number" id="regReturn" value="0"></div>
             <div class="form-buttons">
-                <button onclick="saveReg()">✅ Save</button>
+                <button onclick="saveReg()">Save</button>
                 <button onclick="closeModal('regModal')" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
@@ -213,7 +178,7 @@
             <div class="form-group"><label>PCS:</label><input type="number" id="dbPcs"></div>
             <div class="form-group"><label>Design:</label><input type="text" id="dbDesign"></div>
             <div class="form-buttons">
-                <button onclick="saveDb()">✅ Save</button>
+                <button onclick="saveDb()">Save</button>
                 <button onclick="closeModal('dbModal')" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
@@ -225,147 +190,140 @@
             <div class="form-group"><label>Task:</label><textarea id="remText" style="height:80px;"></textarea></div>
             <div class="form-group">
                 <label>Voice:</label><br>
-                <button type="button" id="voiceBtn" onclick="toggleVoice()" style="background:#e74c3c;margin-top:5px;">🎙️ Start Recording</button>
+                <button type="button" id="voiceBtn" onclick="toggleVoice()" style="background:#e74c3c;margin-top:5px;">🎙️ Start</button>
                 <button type="button" id="playBtn" onclick="playVoice()" style="background:#27ae60;display:none;margin-top:5px;">▶️ Play</button>
                 <button type="button" id="clearBtn" onclick="clearVoice()" style="background:#95a5a6;display:none;margin-top:5px;">✕ Clear</button>
                 <div id="voiceStatus" style="font-size:11px;color:#999;margin-top:5px;"></div>
             </div>
             <div class="form-group"><label>Date:</label><input type="text" id="remDate" placeholder="7 Mar"></div>
-            <div class="form-group"><label>Priority:</label><select id="remPriority"><option>Normal</option><option>Urgent</option></select></div>
             <div class="form-buttons">
-                <button onclick="saveRem()">✅ Save</button>
+                <button onclick="saveRem()">Save</button>
                 <button onclick="closeModal('remModal')" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
 
     <script>
-        let curParty = null, curDesign = null, curRegParty = null, curDbParty = null, curGroup = null;
-        let voiceData = null, mediaRec = null, remFilter = 'all';
+        let p = null, d = null, rp = null, dp = null, g = null;
+        let voiceData = null, mediaRec = null;
 
-        function goPage(p) {
+        function goPage(page) {
             document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
-            document.getElementById(p).classList.add('active');
-            let idx = ['home','chat','register','daybook','reminder'].indexOf(p);
+            document.getElementById(page).classList.add('active');
+            let idx = ['home','chat','register','daybook','reminder'].indexOf(page);
             document.querySelectorAll('.nav-btn')[idx].classList.add('active');
-            if(p === 'home') loadParties();
-            else if(p === 'chat') loadGroups();
-            else if(p === 'register') loadRegParties();
-            else if(p === 'daybook') loadDbParties();
-            else if(p === 'reminder') drawReminders();
+            if(page === 'home') loadParties();
+            else if(page === 'chat') loadGroups();
+            else if(page === 'register') loadRegParties();
+            else if(page === 'daybook') loadDbParties();
+            else if(page === 'reminder') loadReminders();
         }
 
         function goBack() {
-            if(curDesign) { curDesign = null; document.getElementById('sheet').classList.remove('active'); document.getElementById('designs').classList.add('active'); }
-            else if(curRegParty) { curRegParty = null; document.getElementById('registerDetail').classList.remove('active'); document.getElementById('register').classList.add('active'); loadRegParties(); }
-            else if(curDbParty) { curDbParty = null; document.getElementById('daybookDetail').classList.remove('active'); document.getElementById('daybook').classList.add('active'); loadDbParties(); }
-            else if(curGroup) { curGroup = null; document.getElementById('chatDetail').classList.remove('active'); document.getElementById('chat').classList.add('active'); }
-            else { curParty = null; document.getElementById('designs').classList.remove('active'); document.getElementById('home').classList.add('active'); }
+            if(d) { d = null; document.getElementById('sheet').classList.remove('active'); document.getElementById('designs').classList.add('active'); }
+            else if(rp) { rp = null; document.getElementById('registerDetail').classList.remove('active'); document.getElementById('register').classList.add('active'); }
+            else if(dp) { dp = null; document.getElementById('daybookDetail').classList.remove('active'); document.getElementById('daybook').classList.add('active'); }
+            else if(g) { g = null; document.getElementById('chatDetail').classList.remove('active'); document.getElementById('chat').classList.add('active'); }
+            else { p = null; document.getElementById('designs').classList.remove('active'); document.getElementById('home').classList.add('active'); }
         }
 
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
-        // PARTY
+        // PARTIES
         function loadParties() {
-            let p = JSON.parse(localStorage.getItem('parties') || '[]');
-            let h = '';
-            p.forEach(x => h += `<div class="item" onclick="openParty('${x.id}','${x.n}')"><div>📦 ${x.n}</div></div>`);
-            document.getElementById('partiesDiv').innerHTML = h || '<p style="color:#999;">No parties</p>';
+            let ps = JSON.parse(localStorage.getItem('parties') || '[]');
+            let html = '';
+            ps.forEach(x => html += `<div class="item" onclick="openParty('${x.id}','${x.n}')"><div>📦 ${x.n}</div></div>`);
+            document.getElementById('partiesDiv').innerHTML = html || '<p>No parties</p>';
         }
         function openAddParty() { document.getElementById('partyName').value = ''; document.getElementById('partyModal').classList.add('active'); }
         function saveParty() {
             let n = document.getElementById('partyName').value.trim();
-            if(!n) { alert('Enter party name!'); return; }
-            let p = JSON.parse(localStorage.getItem('parties') || '[]');
-            p.push({id: Date.now(), n});
-            localStorage.setItem('parties', JSON.stringify(p));
+            if(!n) { alert('Enter name'); return; }
+            let ps = JSON.parse(localStorage.getItem('parties') || '[]');
+            ps.push({id: Date.now(), n});
+            localStorage.setItem('parties', JSON.stringify(ps));
             closeModal('partyModal');
             loadParties();
         }
         function openParty(id, n) {
-            curParty = {id, n};
+            p = {id, n};
             document.getElementById('home').classList.remove('active');
             document.getElementById('designs').classList.add('active');
-            document.getElementById('desTitle').textContent = `🎨 ${n}`;
+            document.getElementById('desTitle').textContent = n;
             loadDesigns();
         }
 
-        // DESIGN
+        // DESIGNS
         function loadDesigns() {
-            let d = JSON.parse(localStorage.getItem(`des_${curParty.id}`) || '[]');
-            let h = '';
-            d.forEach(x => h += `<div class="item" onclick="openDesign('${x.id}','${x.n}')"><div>🎨 ${x.n}</div></div>`);
-            document.getElementById('designsDiv').innerHTML = h || '<p style="color:#999;">No designs</p>';
+            let ds = JSON.parse(localStorage.getItem(`des_${p.id}`) || '[]');
+            let html = '';
+            ds.forEach(x => html += `<div class="item" onclick="openDesign('${x.id}','${x.n}')"><div>🎨 ${x.n}</div></div>`);
+            document.getElementById('designsDiv').innerHTML = html || '<p>No designs</p>';
         }
         function openAddDesign() { document.getElementById('designName').value = ''; document.getElementById('designModal').classList.add('active'); }
         function saveDesign() {
             let n = document.getElementById('designName').value.trim();
-            if(!n) { alert('Enter design name!'); return; }
-            let d = JSON.parse(localStorage.getItem(`des_${curParty.id}`) || '[]');
-            d.push({id: Date.now(), n});
-            localStorage.setItem(`des_${curParty.id}`, JSON.stringify(d));
+            if(!n) { alert('Enter name'); return; }
+            let ds = JSON.parse(localStorage.getItem(`des_${p.id}`) || '[]');
+            ds.push({id: Date.now(), n});
+            localStorage.setItem(`des_${p.id}`, JSON.stringify(ds));
             closeModal('designModal');
             loadDesigns();
         }
         function openDesign(id, n) {
-            curDesign = {id, n};
+            d = {id, n};
             document.getElementById('designs').classList.remove('active');
             document.getElementById('sheet').classList.add('active');
-            document.getElementById('sheetTitle').textContent = `${curParty.n} | 🎨 ${n}`;
-            drawSheet();
+            document.getElementById('sheetTitle').textContent = `${p.n} | ${n}`;
+            loadSheet();
         }
 
         // SHEET
-        function drawSheet() {
-            let s = JSON.parse(localStorage.getItem(`sheet_${curParty.id}_${curDesign.id}`) || '{"dates":[],"szs":["XXS","XS","S","M","L","XL","2XL","3XL"],"data":{}}');
-            let tf = document.getElementById('tailorF').value.toLowerCase();
-            let sf = document.getElementById('sizeF').value.toUpperCase();
-            let h = '<table><tr><th>TAILOR</th><th>SIZE</th><th>KATE</th><th>SILE</th><th>PEND</th>';
-            s.dates.forEach(x => h += `<th>${x}</th>`);
-            h += '</tr>';
+        function loadSheet() {
+            let s = JSON.parse(localStorage.getItem(`sheet_${p.id}_${d.id}`) || '{"dates":[],"szs":["XXS","XS","S","M","L","XL","2XL","3XL"],"data":{}}');
+            let html = '<table><tr><th>SIZE</th>';
+            s.dates.forEach(x => html += `<th>${x}</th>`);
+            html += '</tr>';
             s.szs.forEach(sz => {
-                if(sf && !sz.includes(sf)) return;
-                let t = s.data[`${sz}_tailor`] || '-';
-                if(tf && !t.toLowerCase().includes(tf)) return;
-                let k = parseInt(s.data[`${sz}_kate`]) || 50, si = parseInt(s.data[`${sz}_sile`]) || 0, p = k - si;
-                h += `<tr><td>${t}</td><td>${sz}</td><td>${k}</td><td>${si}</td><td>${p}</td>`;
-                s.dates.forEach(x => h += `<td>${s.data[`${sz}_${x}`] || '-'}</td>`);
-                h += '</tr>';
+                html += `<tr><td>${sz}</td>`;
+                s.dates.forEach(x => html += `<td>${s.data[`${sz}_${x}`] || '-'}</td>`);
+                html += '</tr>';
             });
-            h += '</table>';
-            document.getElementById('sheetDiv').innerHTML = h;
+            html += '</table>';
+            document.getElementById('sheetDiv').innerHTML = html;
         }
         function openAddDate() { document.getElementById('dateVal').value = ''; document.getElementById('dateModal').classList.add('active'); }
         function saveDate() {
-            let d = document.getElementById('dateVal').value;
-            if(!d) { alert('Enter date!'); return; }
-            let s = JSON.parse(localStorage.getItem(`sheet_${curParty.id}_${curDesign.id}`) || '{"dates":[],"szs":["XXS","XS","S","M","L","XL","2XL","3XL"],"data":{}}');
-            if(!s.dates.includes(d)) s.dates.push(d);
-            localStorage.setItem(`sheet_${curParty.id}_${curDesign.id}`, JSON.stringify(s));
+            let x = document.getElementById('dateVal').value;
+            if(!x) { alert('Enter date'); return; }
+            let s = JSON.parse(localStorage.getItem(`sheet_${p.id}_${d.id}`) || '{"dates":[],"szs":["XXS","XS","S","M","L","XL","2XL","3XL"],"data":{}}');
+            if(!s.dates.includes(x)) s.dates.push(x);
+            localStorage.setItem(`sheet_${p.id}_${d.id}`, JSON.stringify(s));
             closeModal('dateModal');
-            drawSheet();
+            loadSheet();
         }
 
         // CHAT
         function loadGroups() {
-            let g = JSON.parse(localStorage.getItem('groups') || '[]');
-            let h = '';
-            g.forEach(x => h += `<div class="item" onclick="openGroup('${x.id}','${x.n}')"><div>💬 ${x.n}</div></div>`);
-            document.getElementById('groupsDiv').innerHTML = h || '<p style="color:#999;">No groups</p>';
+            let gs = JSON.parse(localStorage.getItem('groups') || '[]');
+            let html = '';
+            gs.forEach(x => html += `<div class="item" onclick="openGroup('${x.id}','${x.n}')"><div>💬 ${x.n}</div></div>`);
+            document.getElementById('groupsDiv').innerHTML = html || '<p>No groups</p>';
         }
         function openAddGroup() { document.getElementById('groupName').value = ''; document.getElementById('groupModal').classList.add('active'); }
         function saveGroup() {
             let n = document.getElementById('groupName').value.trim();
-            if(!n) { alert('Enter name!'); return; }
-            let g = JSON.parse(localStorage.getItem('groups') || '[]');
-            g.push({id: Date.now(), n, msgs: []});
-            localStorage.setItem('groups', JSON.stringify(g));
+            if(!n) { alert('Enter name'); return; }
+            let gs = JSON.parse(localStorage.getItem('groups') || '[]');
+            gs.push({id: Date.now(), n, msgs: []});
+            localStorage.setItem('groups', JSON.stringify(gs));
             closeModal('groupModal');
             loadGroups();
         }
         function openGroup(id, n) {
-            curGroup = {id, n};
+            g = {id, n};
             document.getElementById('chat').classList.remove('active');
             document.getElementById('chatDetail').classList.add('active');
             loadMsgs();
@@ -374,154 +332,127 @@
             let t = document.getElementById('msgText').value;
             if(!t) return;
             let gs = JSON.parse(localStorage.getItem('groups') || '[]');
-            let g = gs.find(x => x.id == curGroup.id);
-            g.msgs.push({t, time: new Date().toLocaleString()});
+            let gx = gs.find(x => x.id == g.id);
+            gx.msgs.push({t, time: new Date().toLocaleString()});
             localStorage.setItem('groups', JSON.stringify(gs));
             document.getElementById('msgText').value = '';
             loadMsgs();
         }
         function loadMsgs() {
-            let g = JSON.parse(localStorage.getItem('groups') || '[]').find(x => x.id == curGroup.id);
-            let h = '';
-            if(g && g.msgs) g.msgs.forEach(x => h += `<div style="background:#e8f4f8;padding:10px;border-radius:5px;margin-bottom:8px;"><b>${x.t}</b><br><small>${x.time}</small></div>`);
-            document.getElementById('msgsDiv').innerHTML = h;
+            let gx = JSON.parse(localStorage.getItem('groups') || '[]').find(x => x.id == g.id);
+            let html = '';
+            if(gx && gx.msgs) gx.msgs.forEach(x => html += `<div style="background:#e8f4f8;padding:8px;border-radius:3px;margin-bottom:5px;"><b>${x.t}</b><br><small>${x.time}</small></div>`);
+            document.getElementById('msgsDiv').innerHTML = html;
         }
 
         // REGISTER
         function loadRegParties() {
-            let p = JSON.parse(localStorage.getItem('parties') || '[]');
-            let h = '';
-            p.forEach(x => h += `<div class="item" onclick="openRegParty('${x.id}','${x.n}')"><div>📋 ${x.n}</div></div>`);
-            document.getElementById('regPartiesDiv').innerHTML = h;
+            let ps = JSON.parse(localStorage.getItem('parties') || '[]');
+            let html = '';
+            ps.forEach(x => html += `<div class="item" onclick="openRegParty('${x.id}','${x.n}')"><div>📋 ${x.n}</div></div>`);
+            document.getElementById('regPartiesDiv').innerHTML = html;
         }
         function openRegParty(id, n) {
-            curRegParty = {id, n};
+            rp = {id, n};
             document.getElementById('register').classList.remove('active');
             document.getElementById('registerDetail').classList.add('active');
-            document.getElementById('regTitle').textContent = `📋 ${n}`;
-            drawRegister();
+            document.getElementById('regTitle').textContent = n;
+            loadReg();
         }
-        function drawRegister() {
-            let r = JSON.parse(localStorage.getItem(`reg_${curRegParty.id}`) || '[]');
-            let df = document.getElementById('regDateF').value.toLowerCase();
-            let dsf = document.getElementById('regDispatchF').value;
-            let h = '';
-            r.forEach((x, i) => {
-                if((df && !x.date.toLowerCase().includes(df)) || (dsf && x.dispatch.toString() !== dsf)) return;
-                h += `<tr><td>${x.date}</td><td>${x.dispatch}</td><td>${x.type}</td><td>${x.ret}</td><td><button onclick="delReg(${i})" style="background:#e74c3c;width:auto;margin:0;padding:5px 8px;">🗑️</button></td></tr>`;
-            });
-            document.getElementById('regBody').innerHTML = h;
+        function loadReg() {
+            let rs = JSON.parse(localStorage.getItem(`reg_${rp.id}`) || '[]');
+            let html = '';
+            rs.forEach((x, i) => html += `<tr><td>${x.date}</td><td>${x.dispatch}</td><td>${x.type}</td><td>${x.ret}</td><td><button onclick="delReg(${i})" style="background:#e74c3c;width:auto;margin:0;padding:5px;">🗑️</button></td></tr>`);
+            document.getElementById('regBody').innerHTML = html;
         }
         function openAddReg() { document.getElementById('regDate').value = ''; document.getElementById('regDispatch').value = ''; document.getElementById('regModal').classList.add('active'); }
         function saveReg() {
-            let date = document.getElementById('regDate').value, dispatch = parseInt(document.getElementById('regDispatch').value), type = document.getElementById('regType').value, ret = parseInt(document.getElementById('regReturn').value) || 0;
-            if(!date || !dispatch) { alert('Fill all!'); return; }
-            let r = JSON.parse(localStorage.getItem(`reg_${curRegParty.id}`) || '[]');
-            r.push({date, dispatch, type, ret});
-            localStorage.setItem(`reg_${curRegParty.id}`, JSON.stringify(r));
+            let date = document.getElementById('regDate').value, dispatch = parseInt(document.getElementById('regDispatch').value), type = document.getElementById('regType').value, ret = parseInt(document.getElementById('regReturn').value);
+            if(!date || !dispatch) { alert('Fill all'); return; }
+            let rs = JSON.parse(localStorage.getItem(`reg_${rp.id}`) || '[]');
+            rs.push({date, dispatch, type, ret});
+            localStorage.setItem(`reg_${rp.id}`, JSON.stringify(rs));
             closeModal('regModal');
-            drawRegister();
+            loadReg();
         }
         function delReg(i) {
             if(!confirm('Delete?')) return;
-            let r = JSON.parse(localStorage.getItem(`reg_${curRegParty.id}`) || '[]');
-            r.splice(i, 1);
-            localStorage.setItem(`reg_${curRegParty.id}`, JSON.stringify(r));
-            drawRegister();
+            let rs = JSON.parse(localStorage.getItem(`reg_${rp.id}`) || '[]');
+            rs.splice(i, 1);
+            localStorage.setItem(`reg_${rp.id}`, JSON.stringify(rs));
+            loadReg();
         }
 
         // DAYBOOK
         function loadDbParties() {
-            let p = JSON.parse(localStorage.getItem('parties') || '[]');
-            let h = '';
-            p.forEach(x => h += `<div class="item" onclick="openDbParty('${x.id}','${x.n}')"><div>📖 ${x.n}</div></div>`);
-            document.getElementById('dbPartiesDiv').innerHTML = h;
+            let ps = JSON.parse(localStorage.getItem('parties') || '[]');
+            let html = '';
+            ps.forEach(x => html += `<div class="item" onclick="openDbParty('${x.id}','${x.n}')"><div>📖 ${x.n}</div></div>`);
+            document.getElementById('dbPartiesDiv').innerHTML = html;
         }
         function openDbParty(id, n) {
-            curDbParty = {id, n};
+            dp = {id, n};
             document.getElementById('daybook').classList.remove('active');
             document.getElementById('daybookDetail').classList.add('active');
-            document.getElementById('dbTitle').textContent = `📖 ${n}`;
-            drawDaybook();
+            document.getElementById('dbTitle').textContent = n;
+            loadDb();
         }
-        function drawDaybook() {
-            let d = JSON.parse(localStorage.getItem(`db_${curDbParty.id}`) || '[]');
-            let dtf = document.getElementById('dbDateF').value.toLowerCase();
-            let pf = document.getElementById('dbPcsF').value;
-            let dnf = document.getElementById('dbDesignF').value.toLowerCase();
-            let h = '';
-            d.forEach((x, i) => {
-                if((dtf && !x.date.toLowerCase().includes(dtf)) || (pf && x.pcs.toString() !== pf) || (dnf && !x.design.toLowerCase().includes(dnf))) return;
-                h += `<tr><td>${x.date}</td><td>${x.pcs}</td><td>${x.design}</td><td><button onclick="delDb(${i})" style="background:#e74c3c;width:auto;margin:0;padding:5px 8px;">🗑️</button></td></tr>`;
-            });
-            document.getElementById('dbBody').innerHTML = h;
+        function loadDb() {
+            let dbs = JSON.parse(localStorage.getItem(`db_${dp.id}`) || '[]');
+            let html = '';
+            dbs.forEach((x, i) => html += `<tr><td>${x.date}</td><td>${x.pcs}</td><td>${x.design}</td><td><button onclick="delDb(${i})" style="background:#e74c3c;width:auto;margin:0;padding:5px;">🗑️</button></td></tr>`);
+            document.getElementById('dbBody').innerHTML = html;
         }
         function openAddDb() { document.getElementById('dbDate').value = ''; document.getElementById('dbPcs').value = ''; document.getElementById('dbDesign').value = ''; document.getElementById('dbModal').classList.add('active'); }
         function saveDb() {
             let date = document.getElementById('dbDate').value, pcs = parseInt(document.getElementById('dbPcs').value), design = document.getElementById('dbDesign').value;
-            if(!date || !pcs || !design) { alert('Fill all!'); return; }
-            let d = JSON.parse(localStorage.getItem(`db_${curDbParty.id}`) || '[]');
-            d.push({date, pcs, design});
-            localStorage.setItem(`db_${curDbParty.id}`, JSON.stringify(d));
+            if(!date || !pcs || !design) { alert('Fill all'); return; }
+            let dbs = JSON.parse(localStorage.getItem(`db_${dp.id}`) || '[]');
+            dbs.push({date, pcs, design});
+            localStorage.setItem(`db_${dp.id}`, JSON.stringify(dbs));
             closeModal('dbModal');
-            drawDaybook();
+            loadDb();
         }
         function delDb(i) {
             if(!confirm('Delete?')) return;
-            let d = JSON.parse(localStorage.getItem(`db_${curDbParty.id}`) || '[]');
-            d.splice(i, 1);
-            localStorage.setItem(`db_${curDbParty.id}`, JSON.stringify(d));
-            drawDaybook();
+            let dbs = JSON.parse(localStorage.getItem(`db_${dp.id}`) || '[]');
+            dbs.splice(i, 1);
+            localStorage.setItem(`db_${dp.id}`, JSON.stringify(dbs));
+            loadDb();
         }
 
         // REMINDERS
-        function drawReminders() {
-            let r = JSON.parse(localStorage.getItem('reminders') || '[]');
-            let sf = document.getElementById('remSearchF').value.toLowerCase();
-            let h = '';
-            r.forEach((x, i) => {
-                if(remFilter !== 'all' && x.status !== remFilter) return;
-                if(sf && !x.task.toLowerCase().includes(sf)) return;
-                h += `<div style="background:white;padding:12px;border-radius:5px;margin-bottom:10px;border-left:4px solid ${x.status==='done'?'#27ae60':'#e74c3c'};">
-                    <div style="font-weight:bold;">${x.task} ${x.voice?'🎤':''}</div>
-                    <div style="font-size:12px;color:#999;">Date: ${x.date} | ${x.status==='done'?'✅':'⏳'}</div>
-                    <div style="display:flex;gap:5px;margin-top:8px;">
-                        ${x.voice?`<button onclick="playVoice2(${i})" style="flex:1;padding:5px;background:#3498db;font-size:11px;">▶️</button>`:''}
-                        ${x.status==='pending'?`<button onclick="markDone(${i})" style="flex:1;padding:5px;background:#27ae60;font-size:11px;">✓ Done</button>`:''}
-                        <button onclick="delRem(${i})" style="flex:1;padding:5px;background:#e74c3c;font-size:11px;">🗑️</button>
+        function loadReminders() {
+            let rs = JSON.parse(localStorage.getItem('reminders') || '[]');
+            let html = '';
+            rs.forEach((x, i) => {
+                html += `<div style="background:white;padding:10px;border-radius:5px;margin-bottom:10px;">
+                    <div><b>${x.task}</b> ${x.voice?'🎤':''}</div>
+                    <div style="font-size:11px;color:#999;">Date: ${x.date} | ${x.status}</div>
+                    <div style="display:flex;gap:5px;margin-top:5px;">
+                        ${x.voice?`<button onclick="playVoice2(${i})" style="flex:1;padding:5px;background:#27ae60;font-size:10px;">▶️</button>`:''}
+                        <button onclick="delRem(${i})" style="flex:1;padding:5px;background:#e74c3c;font-size:10px;">🗑️</button>
                     </div>
                 </div>`;
             });
-            document.getElementById('remDiv').innerHTML = h || '<p style="color:#999;">No reminders</p>';
+            document.getElementById('remDiv').innerHTML = html || '<p>No reminders</p>';
         }
-        function openAddRem() {
-            document.getElementById('remText').value = '';
-            document.getElementById('remDate').value = '';
-            voiceData = null;
-            updateVoiceUI();
-            document.getElementById('remModal').classList.add('active');
-        }
+        function openAddRem() { document.getElementById('remText').value = ''; document.getElementById('remDate').value = ''; voiceData = null; updateVoiceUI(); document.getElementById('remModal').classList.add('active'); }
         function saveRem() {
-            let task = document.getElementById('remText').value, date = document.getElementById('remDate').value, pri = document.getElementById('remPriority').value;
-            if(!task || !date) { alert('Fill all!'); return; }
-            let r = JSON.parse(localStorage.getItem('reminders') || '[]');
-            r.push({task, date, pri, voice: voiceData, status: 'pending'});
-            localStorage.setItem('reminders', JSON.stringify(r));
+            let task = document.getElementById('remText').value, date = document.getElementById('remDate').value;
+            if(!task || !date) { alert('Fill all'); return; }
+            let rs = JSON.parse(localStorage.getItem('reminders') || '[]');
+            rs.push({task, date, voice: voiceData, status: 'pending'});
+            localStorage.setItem('reminders', JSON.stringify(rs));
             closeModal('remModal');
-            drawReminders();
-        }
-        function markDone(i) {
-            let r = JSON.parse(localStorage.getItem('reminders') || '[]');
-            r[i].status = 'done';
-            localStorage.setItem('reminders', JSON.stringify(r));
-            drawReminders();
+            loadReminders();
         }
         function delRem(i) {
             if(!confirm('Delete?')) return;
-            let r = JSON.parse(localStorage.getItem('reminders') || '[]');
-            r.splice(i, 1);
-            localStorage.setItem('reminders', JSON.stringify(r));
-            drawReminders();
+            let rs = JSON.parse(localStorage.getItem('reminders') || '[]');
+            rs.splice(i, 1);
+            localStorage.setItem('reminders', JSON.stringify(rs));
+            loadReminders();
         }
         function toggleVoice() {
             if(document.getElementById('voiceBtn').textContent.includes('Start')) startVoice();
@@ -535,19 +466,19 @@
                 mediaRec.onstop = () => {
                     let b = new Blob(ch, {type: 'audio/webm'});
                     let fr = new FileReader();
-                    fr.onload = () => { voiceData = fr.result; updateVoiceUI(); document.getElementById('voiceStatus').textContent = '✅ Recorded!'; };
+                    fr.onload = () => { voiceData = fr.result; updateVoiceUI(); document.getElementById('voiceStatus').textContent = '✅ Recorded'; };
                     fr.readAsDataURL(b);
                 };
                 mediaRec.start();
                 document.getElementById('voiceBtn').textContent = '⏹️ Stop';
                 document.getElementById('voiceStatus').textContent = '🔴 Recording...';
-            }).catch(() => alert('Mic access denied'));
+            });
         }
         function stopVoice() {
             if(mediaRec) {
                 mediaRec.stop();
                 mediaRec.stream.getTracks().forEach(t => t.stop());
-                document.getElementById('voiceBtn').textContent = '🎙️ Start Recording';
+                document.getElementById('voiceBtn').textContent = '🎙️ Start';
             }
         }
         function updateVoiceUI() {
@@ -556,7 +487,7 @@
         }
         function playVoice() { if(voiceData) new Audio(voiceData).play(); }
         function clearVoice() { voiceData = null; updateVoiceUI(); document.getElementById('voiceStatus').textContent = ''; }
-        function playVoice2(i) { let r = JSON.parse(localStorage.getItem('reminders') || '[]')[i]; if(r.voice) new Audio(r.voice).play(); }
+        function playVoice2(i) { let rs = JSON.parse(localStorage.getItem('reminders') || '[]')[i]; if(rs.voice) new Audio(rs.voice).play(); }
 
         window.addEventListener('load', loadParties);
     </script>
