@@ -1,138 +1,139 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factory ERP System</title>
-    <link rel="manifest" href="./manifest.json">
+    <title>Factory ERP</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        body { font-family: Arial; background: #f5f5f5; }
         .container { height: 100vh; display: flex; flex-direction: column; }
         header { background: #2c3e50; color: white; padding: 15px; text-align: center; }
         .content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
         .page { display: none; }
         .page.active { display: block; }
-        .item { background: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; }
-        .item-title { font-weight: bold; font-size: 15px; }
-        button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px; font-weight: bold; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; border-top: 1px solid #ddd; padding: 5px 0; z-index: 100; }
-        .nav-btn { flex: 1; padding: 12px; background: none; border: none; cursor: pointer; font-size: 22px; }
+        .item { background: white; padding: 12px; border-radius: 5px; margin-bottom: 10px; cursor: pointer; }
+        .item-title { font-weight: bold; }
+        button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 5px; margin-top: 15px; cursor: pointer; font-weight: bold; }
+        .nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid #ddd; }
+        .nav-btn { flex: 1; padding: 10px; background: none; border: none; font-size: 20px; cursor: pointer; }
         .nav-btn.active { background: #f0f0f0; }
         table { width: 100%; border-collapse: collapse; background: white; margin: 10px 0; }
-        th, td { padding: 8px; text-align: center; border: 1px solid #ddd; font-size: 12px; }
+        th, td { padding: 8px; border: 1px solid #ddd; font-size: 12px; text-align: center; }
         th { background: #34495e; color: white; }
-        .editable { cursor: pointer; background: #fffacd; }
-        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .editable { background: #fffacd; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
-        .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-content { background: white; padding: 20px; border-radius: 10px; width: 90%; max-height: 90vh; overflow-y: auto; }
         .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
         .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
         .form-buttons { display: flex; gap: 10px; margin-top: 15px; }
         .form-buttons button { flex: 1; margin: 0; }
-        .filter-box { background: white; padding: 12px; border-radius: 5px; margin-bottom: 12px; border: 2px solid #3498db; }
-        .filter-box input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 3px; margin-bottom: 8px; }
+        .filter-box { background: white; padding: 10px; border-radius: 5px; margin-bottom: 10px; border: 2px solid #3498db; }
+        .filter-box input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px; margin-bottom: 8px; }
+        .back-btn { background: #95a5a6 !important; }
+        .title { font-weight: bold; font-size: 16px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <header><h1>📋 Factory ERP System</h1></header>
+        <header><h1>📋 Factory ERP</h1></header>
+        
         <div class="content">
-            <div id="homePage" class="page active">
-                <div style="font-weight:bold;margin-bottom:10px;">🏠 PARTIES</div>
-                <div id="partiesList"></div>
-                <button onclick="showAddPartyModal()">➕ ADD PARTY</button>
+            <div id="home" class="page active">
+                <div class="title">🏠 PARTIES</div>
+                <div id="partiesDiv"></div>
+                <button onclick="addParty()">➕ ADD PARTY</button>
             </div>
 
-            <div id="designsPage" class="page">
-                <button onclick="goBack()" style="background:#95a5a6;margin-bottom:10px;">← BACK</button>
-                <div style="font-weight:bold;margin-bottom:10px;" id="designsTitle"></div>
-                <div id="designsList"></div>
-                <button onclick="showAddDesignModal()">➕ ADD DESIGN</button>
+            <div id="designs" class="page">
+                <button class="back-btn" onclick="back()">← BACK</button>
+                <div class="title" id="desTitle"></div>
+                <div id="designsDiv"></div>
+                <button onclick="addDesign()">➕ ADD DESIGN</button>
             </div>
 
-            <div id="sheetPage" class="page">
-                <button onclick="goBack()" style="background:#95a5a6;margin-bottom:10px;">← BACK</button>
-                <div style="font-weight:bold;margin-bottom:10px;" id="sheetTitle"></div>
+            <div id="sheet" class="page">
+                <button class="back-btn" onclick="back()">← BACK</button>
+                <div class="title" id="sheetTitle"></div>
                 <div class="filter-box">
-                    <div style="font-weight:bold;margin-bottom:8px;">🔍 FILTERS:</div>
-                    <input type="text" id="tailorFilter" placeholder="Filter by Tailor Name" onkeyup="showSheetTable()">
-                    <input type="text" id="sizeFilter" placeholder="Filter by Size" onkeyup="showSheetTable()">
+                    <input type="text" id="tailorF" placeholder="Filter Tailor" onkeyup="drawSheet()">
+                    <input type="text" id="sizeF" placeholder="Filter Size" onkeyup="drawSheet()">
                 </div>
-                <div id="sheetTableDiv"></div>
-                <button onclick="showAddDateModal()">📅 ADD NEW DATE</button>
+                <div id="sheetDiv"></div>
+                <button onclick="addDate()">📅 ADD DATE</button>
             </div>
 
-            <div id="chatPage" class="page">
-                <div style="font-weight:bold;margin-bottom:10px;">💬 GROUPS</div>
-                <div id="groupsList"></div>
-                <button onclick="showAddGroupModal()">➕ NEW GROUP</button>
+            <div id="chat" class="page">
+                <div class="title">💬 GROUPS</div>
+                <div id="groupsDiv"></div>
+                <button onclick="addGroup()">➕ ADD GROUP</button>
             </div>
 
-            <div id="chatDetailPage" class="page">
-                <button onclick="goBack()" style="background:#95a5a6;margin-bottom:10px;">← BACK</button>
-                <div id="messagesList" style="height:300px;overflow-y:auto;background:white;padding:10px;border-radius:5px;margin-bottom:10px;"></div>
+            <div id="chatDetail" class="page">
+                <button class="back-btn" onclick="back()">← BACK</button>
+                <div id="msgsDiv" style="height:300px;overflow-y:auto;background:white;padding:10px;border-radius:5px;margin-bottom:10px;"></div>
                 <div style="display:flex;gap:10px;">
-                    <input type="text" id="messageInput" placeholder="Type message..." style="flex:1;padding:10px;border:1px solid #ddd;border-radius:5px;">
-                    <button onclick="sendMessage()" style="width:auto;margin:0;">Send</button>
+                    <input type="text" id="msgText" placeholder="Message" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:5px;">
+                    <button onclick="sendMsg()" style="width:auto;margin:0;padding:10px 15px;">Send</button>
                 </div>
             </div>
 
-            <div id="registerPage" class="page">
-                <div style="font-weight:bold;margin-bottom:10px;">📋 REGISTER - SELECT PARTY</div>
-                <div id="registerList"></div>
+            <div id="register" class="page">
+                <div class="title">📋 REGISTER</div>
+                <div id="regPartiesDiv"></div>
             </div>
 
-            <div id="registerDetailPage" class="page">
-                <button onclick="goBack()" style="background:#95a5a6;margin-bottom:10px;">← BACK</button>
-                <div style="font-weight:bold;margin-bottom:10px;" id="registerTitle"></div>
+            <div id="registerDetail" class="page">
+                <button class="back-btn" onclick="back()">← BACK</button>
+                <div class="title" id="regTitle"></div>
                 <div class="filter-box">
-                    <input type="text" id="regDateFilter" placeholder="Filter by Date" onkeyup="showRegisterTable()">
-                    <input type="number" id="regDispatchFilter" placeholder="Filter by Dispatch" onkeyup="showRegisterTable()">
+                    <input type="text" id="regDateF" placeholder="Filter Date" onkeyup="drawRegister()">
+                    <input type="number" id="regDispatchF" placeholder="Filter Dispatch" onkeyup="drawRegister()">
                 </div>
-                <table><tr><th>DATE</th><th>DISPATCH</th><th>TYPE</th><th>RETURN</th><th>EDIT</th><th>DEL</th></tr><tbody id="regTableBody"></tbody></table>
-                <button onclick="showAddRegisterModal()">➕ ADD ENTRY</button>
+                <table><tr><th>DATE</th><th>DISPATCH</th><th>TYPE</th><th>RETURN</th><th>EDIT</th><th>DEL</th></tr><tbody id="regBody"></tbody></table>
+                <button onclick="addRegEntry()">➕ ADD</button>
             </div>
 
-            <div id="daybookPage" class="page">
-                <div style="font-weight:bold;margin-bottom:10px;">📖 DAY BOOK - SELECT PARTY</div>
-                <div id="daybookList"></div>
+            <div id="daybook" class="page">
+                <div class="title">📖 DAY BOOK</div>
+                <div id="dbPartiesDiv"></div>
             </div>
 
-            <div id="daybookDetailPage" class="page">
-                <button onclick="goBack()" style="background:#95a5a6;margin-bottom:10px;">← BACK</button>
-                <div style="font-weight:bold;margin-bottom:10px;" id="daybookTitle"></div>
+            <div id="daybookDetail" class="page">
+                <button class="back-btn" onclick="back()">← BACK</button>
+                <div class="title" id="dbTitle"></div>
                 <div class="filter-box">
-                    <input type="text" id="dbDateFilter" placeholder="Filter by Date" onkeyup="showDaybookTable()">
-                    <input type="number" id="dbPcsFilter" placeholder="Filter by PCS" onkeyup="showDaybookTable()">
-                    <input type="text" id="dbDesignFilter" placeholder="Filter by Design" onkeyup="showDaybookTable()">
+                    <input type="text" id="dbDateF" placeholder="Filter Date" onkeyup="drawDaybook()">
+                    <input type="number" id="dbPcsF" placeholder="Filter PCS" onkeyup="drawDaybook()">
+                    <input type="text" id="dbDesignF" placeholder="Filter Design" onkeyup="drawDaybook()">
                 </div>
-                <table><tr><th>DATE</th><th>PCS</th><th>DESIGN</th><th>EDIT</th><th>DEL</th></tr><tbody id="dbTableBody"></tbody></table>
-                <button onclick="showAddDaybookModal()">➕ ADD ENTRY</button>
+                <table><tr><th>DATE</th><th>PCS</th><th>DESIGN</th><th>EDIT</th><th>DEL</th></tr><tbody id="dbBody"></tbody></table>
+                <button onclick="addDbEntry()">➕ ADD</button>
             </div>
 
-            <div id="reminderPage" class="page">
-                <div style="font-weight:bold;margin-bottom:10px;">📌 REMINDERS</div>
+            <div id="reminder" class="page">
+                <div class="title">📌 REMINDERS</div>
                 <div class="filter-box">
-                    <input type="text" id="remSearchInput" placeholder="Search tasks..." onkeyup="showReminderList()">
+                    <input type="text" id="remSearchF" placeholder="Search" onkeyup="drawReminders()">
                     <div style="display:flex;gap:5px;">
-                        <button onclick="filterRemStatus('all')" style="font-size:12px;">All</button>
-                        <button onclick="filterRemStatus('pending')" style="background:#e74c3c;font-size:12px;">Pending</button>
-                        <button onclick="filterRemStatus('completed')" style="background:#27ae60;font-size:12px;">Done</button>
+                        <button onclick="filterRemAll()" style="font-size:12px;">All</button>
+                        <button onclick="filterRemPending()" style="background:#e74c3c;font-size:12px;">Pending</button>
+                        <button onclick="filterRemDone()" style="background:#27ae60;font-size:12px;">Done</button>
                     </div>
                 </div>
-                <div id="remindersList"></div>
-                <button onclick="showAddReminderModal()">➕ ADD REMINDER</button>
+                <div id="remDiv"></div>
+                <button onclick="addReminder()">➕ ADD REMINDER</button>
             </div>
         </div>
 
-        <div class="bottom-nav">
-            <button class="nav-btn active" onclick="switchPage('home')">🏠</button>
-            <button class="nav-btn" onclick="switchPage('chat')">💬</button>
-            <button class="nav-btn" onclick="switchPage('register')">📋</button>
-            <button class="nav-btn" onclick="switchPage('daybook')">📖</button>
-            <button class="nav-btn" onclick="switchPage('reminder')">📌</button>
+        <div class="nav">
+            <button class="nav-btn active" onclick="goPage('home')">🏠</button>
+            <button class="nav-btn" onclick="goPage('chat')">💬</button>
+            <button class="nav-btn" onclick="goPage('register')">📋</button>
+            <button class="nav-btn" onclick="goPage('daybook')">📖</button>
+            <button class="nav-btn" onclick="goPage('reminder')">📌</button>
         </div>
     </div>
 
@@ -140,13 +141,10 @@
     <div id="partyModal" class="modal">
         <div class="modal-content">
             <h2>Add Party</h2>
-            <div class="form-group">
-                <label>Party Name:</label>
-                <input type="text" id="partyName" placeholder="e.g., Anas Arkas Fabrics">
-            </div>
+            <div class="form-group"><label>Name:</label><input type="text" id="partyName"></div>
             <div class="form-buttons">
                 <button onclick="saveParty()">Save</button>
-                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
+                <button onclick="closeAllModals()" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
@@ -154,13 +152,10 @@
     <div id="designModal" class="modal">
         <div class="modal-content">
             <h2>Add Design</h2>
-            <div class="form-group">
-                <label>Design Name:</label>
-                <input type="text" id="designName" placeholder="e.g., Paan Black">
-            </div>
+            <div class="form-group"><label>Name:</label><input type="text" id="designName"></div>
             <div class="form-buttons">
                 <button onclick="saveDesign()">Save</button>
-                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
+                <button onclick="closeAllModals()" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
@@ -168,26 +163,21 @@
     <div id="dateModal" class="modal">
         <div class="modal-content">
             <h2>Add Date</h2>
-            <div class="form-group">
-                <label>Date (e.g., 5 Mar):</label>
-                <input type="text" id="dateVal" placeholder="5 Mar">
-            </div>
+            <div class="form-group"><label>Date:</label><input type="text" id="dateVal" placeholder="5 Mar"></div>
             <div class="form-buttons">
                 <button onclick="saveDate()">Save</button>
-                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
+                <button onclick="closeAllModals()" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
 
     <div id="cellModal" class="modal">
         <div class="modal-content">
-            <h2 id="cellLabel">Edit</h2>
-            <div class="form-group">
-                <input type="text" id="cellVal" placeholder="Value">
-            </div>
+            <h2>Edit Cell</h2>
+            <div class="form-group"><input type="text" id="cellVal"></div>
             <div class="form-buttons">
-                <button onclick="saveCell()">Save</button>
-                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
+                <button onclick="saveEditCell()">Save</button>
+                <button onclick="closeAllModals()" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
@@ -195,496 +185,401 @@
     <div id="groupModal" class="modal">
         <div class="modal-content">
             <h2>Add Group</h2>
-            <div class="form-group">
-                <label>Group Name:</label>
-                <input type="text" id="groupName" placeholder="e.g., Tailors">
-            </div>
+            <div class="form-group"><label>Name:</label><input type="text" id="groupName"></div>
             <div class="form-buttons">
                 <button onclick="saveGroup()">Save</button>
-                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
+                <button onclick="closeAllModals()" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
 
-    <div id="registerModal" class="modal">
+    <div id="regModal" class="modal">
         <div class="modal-content">
             <h2>Add Register Entry</h2>
             <div class="form-group"><label>Date:</label><input type="text" id="regDate" placeholder="5 Mar"></div>
-            <div class="form-group"><label>Dispatch:</label><input type="number" id="regDispatch" placeholder="50"></div>
+            <div class="form-group"><label>Dispatch:</label><input type="number" id="regDispatch"></div>
             <div class="form-group"><label>Type:</label><select id="regType"><option>PCS</option><option>SET</option><option>CORD SET</option></select></div>
-            <div class="form-group"><label>Return:</label><input type="number" id="regReturn" placeholder="0"></div>
+            <div class="form-group"><label>Return:</label><input type="number" id="regReturn"></div>
             <div class="form-buttons">
-                <button onclick="saveRegisterEntry()">Save</button>
-                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
+                <button onclick="saveRegEntry()">Save</button>
+                <button onclick="closeAllModals()" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
 
-    <div id="daybookModal" class="modal">
+    <div id="dbModal" class="modal">
         <div class="modal-content">
             <h2>Add Daybook Entry</h2>
             <div class="form-group"><label>Date:</label><input type="text" id="dbDate" placeholder="5 Mar"></div>
-            <div class="form-group"><label>PCS:</label><input type="number" id="dbPcs" placeholder="50"></div>
-            <div class="form-group"><label>Design:</label><input type="text" id="dbDesign" placeholder="Paan Black"></div>
+            <div class="form-group"><label>PCS:</label><input type="number" id="dbPcs"></div>
+            <div class="form-group"><label>Design:</label><input type="text" id="dbDesign"></div>
             <div class="form-buttons">
-                <button onclick="saveDaybookEntry()">Save</button>
-                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
+                <button onclick="saveDbEntry()">Save</button>
+                <button onclick="closeAllModals()" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
 
-    <div id="reminderModal" class="modal">
+    <div id="remModal" class="modal">
         <div class="modal-content">
             <h2 id="remTitle">Add Reminder</h2>
-            <div class="form-group"><label>Task:</label><textarea id="remText" placeholder="What to do?" style="height:80px;"></textarea></div>
+            <div class="form-group"><label>Task:</label><textarea id="remText" style="height:80px;"></textarea></div>
             <div class="form-group">
-                <label>🎤 Voice Note:</label>
-                <button type="button" id="voiceStartBtn" onclick="toggleVoice()" style="background:#e74c3c;">🎙️ Start Recording</button>
-                <button type="button" id="voicePlayBtn" onclick="playVoice()" style="background:#27ae60;display:none;">▶️ Play</button>
-                <button type="button" id="voiceClearBtn" onclick="clearVoice()" style="background:#95a5a6;display:none;">✕ Clear</button>
+                <label>Voice:</label>
+                <button type="button" id="voiceBtn" onclick="toggleVoice()" style="background:#e74c3c;">🎙️ Start</button>
+                <button type="button" id="playBtn" onclick="playVoice()" style="background:#27ae60;display:none;">▶️ Play</button>
+                <button type="button" id="clearBtn" onclick="clearVoice()" style="background:#95a5a6;display:none;">✕ Clear</button>
                 <div id="voiceStatus" style="font-size:11px;color:#999;margin-top:5px;"></div>
             </div>
             <div class="form-group"><label>Date:</label><input type="text" id="remDate" placeholder="7 Mar"></div>
-            <div class="form-group"><label>Priority:</label><select id="remPriority"><option value="normal">Normal</option><option value="urgent">⭐ Urgent</option></select></div>
+            <div class="form-group"><label>Priority:</label><select id="remPriority"><option>Normal</option><option>⭐ Urgent</option></select></div>
             <div class="form-buttons">
                 <button onclick="saveReminder()">Save</button>
-                <button class="cancel" onclick="closeModal()" style="background:#95a5a6;">Cancel</button>
+                <button onclick="closeAllModals()" style="background:#95a5a6;">Cancel</button>
             </div>
         </div>
     </div>
 
     <script>
-        let cParty = null, cDesign = null, cRegParty = null, cDBParty = null, cGroup = null;
-        let cEditCell = null, cEditRemIdx = null, voiceData = null, mediaRec = null;
-        let allReminders = [];
+        let party = null, design = null, regParty = null, dbParty = null, group = null;
+        let editCell = null, voiceData = null, mediaRec = null, remFilter = 'all';
 
-        function switchPage(p) {
+        function goPage(p) {
             document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
-            document.getElementById(p + 'Page').classList.add('active');
-            const idx = p === 'home' ? 0 : p === 'chat' ? 1 : p === 'register' ? 2 : p === 'daybook' ? 3 : 4;
+            document.getElementById(p).classList.add('active');
+            let idx = p === 'home' ? 0 : p === 'chat' ? 1 : p === 'register' ? 2 : p === 'daybook' ? 3 : 4;
             document.querySelectorAll('.nav-btn')[idx].classList.add('active');
             if(p === 'home') loadParties();
             else if(p === 'chat') loadGroups();
-            else if(p === 'register') loadRegisterParties();
-            else if(p === 'daybook') loadDaybookParties();
-            else if(p === 'reminder') loadReminderList();
+            else if(p === 'register') loadRegParties();
+            else if(p === 'daybook') loadDbParties();
+            else if(p === 'reminder') drawReminders();
         }
 
-        function goBack() {
-            if(cDesign) {
-                cDesign = null;
-                document.getElementById('sheetPage').classList.remove('active');
-                document.getElementById('designsPage').classList.add('active');
-            } else if(cRegParty) {
-                cRegParty = null;
-                document.getElementById('registerDetailPage').classList.remove('active');
-                document.getElementById('registerPage').classList.add('active');
-                loadRegisterParties();
-            } else if(cDBParty) {
-                cDBParty = null;
-                document.getElementById('daybookDetailPage').classList.remove('active');
-                document.getElementById('daybookPage').classList.add('active');
-                loadDaybookParties();
-            } else if(cGroup) {
-                cGroup = null;
-                document.getElementById('chatDetailPage').classList.remove('active');
-                document.getElementById('chatPage').classList.add('active');
-                loadGroups();
-            } else {
-                cParty = null;
-                document.getElementById('designsPage').classList.remove('active');
-                document.getElementById('homePage').classList.add('active');
-            }
+        function back() {
+            if(design) { design = null; goPage('designs'); }
+            else if(regParty) { regParty = null; goPage('register'); loadRegParties(); }
+            else if(dbParty) { dbParty = null; goPage('daybook'); loadDbParties(); }
+            else if(group) { group = null; goPage('chat'); }
+            else { party = null; goPage('home'); }
         }
 
-        function closeModal() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
+        function closeAllModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
 
         // PARTIES
-        function getParties() { return JSON.parse(localStorage.getItem('parties') || '[]'); }
-        function saveParties(p) { localStorage.setItem('parties', JSON.stringify(p)); }
         function loadParties() {
-            let html = '';
-            getParties().forEach(p => html += `<div class="item" onclick="openParty('${p.id}','${p.name}')"><div class="item-title">📦 ${p.name}</div></div>`);
-            document.getElementById('partiesList').innerHTML = html || '<p style="text-align:center;color:#999;">No parties</p>';
+            let p = JSON.parse(localStorage.getItem('parties') || '[]');
+            let h = '';
+            p.forEach(x => h += `<div class="item" onclick="openParty('${x.id}','${x.n}')"><div class="item-title">📦 ${x.n}</div></div>`);
+            document.getElementById('partiesDiv').innerHTML = h || '<p style="color:#999;text-align:center;">No parties</p>';
         }
-        function showAddPartyModal() { document.getElementById('partyName').value = ''; document.getElementById('partyModal').classList.add('active'); }
+        function addParty() { document.getElementById('partyName').value = ''; document.getElementById('partyModal').classList.add('active'); }
         function saveParty() {
-            const n = document.getElementById('partyName').value;
-            if(!n) return alert('Enter name!');
-            let p = getParties();
-            p.push({id: Date.now(), name: n});
-            saveParties(p);
-            closeModal();
+            let n = document.getElementById('partyName').value;
+            if(!n) return alert('Enter name');
+            let p = JSON.parse(localStorage.getItem('parties') || '[]');
+            p.push({id: Date.now(), n});
+            localStorage.setItem('parties', JSON.stringify(p));
+            closeAllModals();
             loadParties();
         }
         function openParty(id, n) {
-            cParty = {id, name: n};
-            document.getElementById('homePage').classList.remove('active');
-            document.getElementById('designsPage').classList.add('active');
-            document.getElementById('designsTitle').textContent = `🎨 ${n}`;
+            party = {id, n};
+            document.getElementById('home').classList.remove('active');
+            document.getElementById('designs').classList.add('active');
+            document.getElementById('desTitle').textContent = `🎨 ${n}`;
             loadDesigns();
         }
 
         // DESIGNS
-        function getDesigns(pid) { return JSON.parse(localStorage.getItem(`des_${pid}`) || '[]'); }
-        function saveDesigns(pid, d) { localStorage.setItem(`des_${pid}`, JSON.stringify(d)); }
         function loadDesigns() {
-            let html = '';
-            getDesigns(cParty.id).forEach(d => html += `<div class="item" onclick="openDesign('${d.id}','${d.name}')"><div class="item-title">🎨 ${d.name}</div></div>`);
-            document.getElementById('designsList').innerHTML = html || '<p style="text-align:center;color:#999;">No designs</p>';
+            let d = JSON.parse(localStorage.getItem(`des_${party.id}`) || '[]');
+            let h = '';
+            d.forEach(x => h += `<div class="item" onclick="openDesign('${x.id}','${x.n}')"><div class="item-title">🎨 ${x.n}</div></div>`);
+            document.getElementById('designsDiv').innerHTML = h || '<p style="color:#999;text-align:center;">No designs</p>';
         }
-        function showAddDesignModal() { document.getElementById('designName').value = ''; document.getElementById('designModal').classList.add('active'); }
+        function addDesign() { document.getElementById('designName').value = ''; document.getElementById('designModal').classList.add('active'); }
         function saveDesign() {
-            const n = document.getElementById('designName').value;
-            if(!n) return alert('Enter name!');
-            let d = getDesigns(cParty.id);
-            d.push({id: Date.now(), name: n});
-            saveDesigns(cParty.id, d);
-            closeModal();
+            let n = document.getElementById('designName').value;
+            if(!n) return alert('Enter name');
+            let d = JSON.parse(localStorage.getItem(`des_${party.id}`) || '[]');
+            d.push({id: Date.now(), n});
+            localStorage.setItem(`des_${party.id}`, JSON.stringify(d));
+            closeAllModals();
             loadDesigns();
         }
         function openDesign(id, n) {
-            cDesign = {id, name: n};
-            document.getElementById('designsPage').classList.remove('active');
-            document.getElementById('sheetPage').classList.add('active');
-            document.getElementById('sheetTitle').textContent = `${cParty.name} | 🎨 ${n}`;
-            showSheetTable();
+            design = {id, n};
+            document.getElementById('designs').classList.remove('active');
+            document.getElementById('sheet').classList.add('active');
+            document.getElementById('sheetTitle').textContent = `${party.n} | 🎨 ${n}`;
+            drawSheet();
         }
 
         // SHEET
-        function getSheet(pid, did) {
-            const k = `sheet_${pid}_${did}`;
-            return JSON.parse(localStorage.getItem(k) || '{"dates":[],"sizes":["XXS","XS","S","M","L","XL","2XL","3XL"],"data":{}}');
-        }
-        function saveSheet(pid, did, s) { localStorage.setItem(`sheet_${pid}_${did}`, JSON.stringify(s)); }
-        function showSheetTable() {
-            const s = getSheet(cParty.id, cDesign.id);
-            const tf = document.getElementById('tailorFilter').value.toLowerCase();
-            const sf = document.getElementById('sizeFilter').value.toUpperCase();
-            let html = '<table><tr><th>TAILOR</th><th>SIZE</th><th>KATE</th><th>SILE</th><th>PEND</th>';
-            s.dates.forEach(d => html += `<th>${d}</th>`);
-            html += '</tr>';
-            s.sizes.forEach(sz => {
+        function drawSheet() {
+            let s = JSON.parse(localStorage.getItem(`sheet_${party.id}_${design.id}`) || '{"d":[],"sz":["XXS","XS","S","M","L","XL","2XL","3XL"],"dat":{}}');
+            let tf = document.getElementById('tailorF').value.toLowerCase();
+            let sf = document.getElementById('sizeF').value.toUpperCase();
+            let h = '<table><tr><th>TAILOR</th><th>SIZE</th><th>KATE</th><th>SILE</th><th>PEND</th>';
+            s.d.forEach(x => h += `<th>${x}</th>`);
+            h += '</tr>';
+            s.sz.forEach(sz => {
                 if(sf && !sz.includes(sf)) return;
-                const t = s.data[`${sz}_tailor`] || '-';
+                let t = s.dat[`${sz}_t`] || '-';
                 if(tf && !t.toLowerCase().includes(tf)) return;
-                const k = parseInt(s.data[`${sz}_kate`]) || 50;
-                const si = parseInt(s.data[`${sz}_sile`]) || 0;
-                const p = k - si;
-                html += `<tr><td class="editable" onclick="openCellEditor('${sz}','tailor')">${t}</td><td>${sz}</td><td class="editable" onclick="openCellEditor('${sz}','kate')">${k}</td><td class="editable" onclick="openCellEditor('${sz}','sile')">${si}</td><td>${p}</td>`;
-                s.dates.forEach(d => {
-                    const v = s.data[`${sz}_${d}`] || '-';
-                    html += `<td class="editable" onclick="openCellEditor('${sz}','${d}')">${v}</td>`;
-                });
-                html += '</tr>';
+                let k = parseInt(s.dat[`${sz}_k`]) || 50, si = parseInt(s.dat[`${sz}_si`]) || 0, p = k - si;
+                h += `<tr><td class="editable" onclick="editC('${sz}','t')">${t}</td><td>${sz}</td><td class="editable" onclick="editC('${sz}','k')">${k}</td><td class="editable" onclick="editC('${sz}','si')">${si}</td><td>${p}</td>`;
+                s.d.forEach(x => h += `<td class="editable" onclick="editC('${sz}','${x}')">${s.dat[`${sz}_${x}`] || '-'}</td>`);
+                h += '</tr>';
             });
-            html += '</table>';
-            document.getElementById('sheetTableDiv').innerHTML = html;
+            h += '</table>';
+            document.getElementById('sheetDiv').innerHTML = h;
         }
-        function openCellEditor(sz, f) { cEditCell = {sz, f}; document.getElementById('cellLabel').textContent = `${sz} - ${f}`; document.getElementById('cellVal').value = ''; document.getElementById('cellModal').classList.add('active'); }
-        function saveCell() {
-            const v = document.getElementById('cellVal').value || '-';
-            const s = getSheet(cParty.id, cDesign.id);
-            s.data[`${cEditCell.sz}_${cEditCell.f}`] = v;
-            saveSheet(cParty.id, cDesign.id, s);
-            closeModal();
-            showSheetTable();
+        function editC(sz, f) { editCell = {sz, f}; document.getElementById('cellVal').value = ''; document.getElementById('cellModal').classList.add('active'); }
+        function saveEditCell() {
+            let v = document.getElementById('cellVal').value || '-';
+            let s = JSON.parse(localStorage.getItem(`sheet_${party.id}_${design.id}`) || '{"d":[],"sz":["XXS","XS","S","M","L","XL","2XL","3XL"],"dat":{}}');
+            s.dat[`${editCell.sz}_${editCell.f}`] = v;
+            localStorage.setItem(`sheet_${party.id}_${design.id}`, JSON.stringify(s));
+            closeAllModals();
+            drawSheet();
         }
-        function showAddDateModal() { document.getElementById('dateVal').value = ''; document.getElementById('dateModal').classList.add('active'); }
+        function addDate() { document.getElementById('dateVal').value = ''; document.getElementById('dateModal').classList.add('active'); }
         function saveDate() {
-            const d = document.getElementById('dateVal').value;
-            if(!d) return alert('Enter date!');
-            const s = getSheet(cParty.id, cDesign.id);
-            if(!s.dates.includes(d)) s.dates.push(d);
-            saveSheet(cParty.id, cDesign.id, s);
-            closeModal();
-            showSheetTable();
+            let d = document.getElementById('dateVal').value;
+            if(!d) return alert('Enter date');
+            let s = JSON.parse(localStorage.getItem(`sheet_${party.id}_${design.id}`) || '{"d":[],"sz":["XXS","XS","S","M","L","XL","2XL","3XL"],"dat":{}}');
+            if(!s.d.includes(d)) s.d.push(d);
+            localStorage.setItem(`sheet_${party.id}_${design.id}`, JSON.stringify(s));
+            closeAllModals();
+            drawSheet();
         }
 
         // CHAT
-        function getGroups() { return JSON.parse(localStorage.getItem('groups') || '[]'); }
-        function saveGroups(g) { localStorage.setItem('groups', JSON.stringify(g)); }
         function loadGroups() {
-            let html = '';
-            getGroups().forEach(g => html += `<div class="item" onclick="openGroup('${g.id}','${g.name}')"><div class="item-title">💬 ${g.name}</div></div>`);
-            document.getElementById('groupsList').innerHTML = html || '<p style="text-align:center;color:#999;">No groups</p>';
+            let g = JSON.parse(localStorage.getItem('groups') || '[]');
+            let h = '';
+            g.forEach(x => h += `<div class="item" onclick="openGroup('${x.id}','${x.n}')"><div class="item-title">💬 ${x.n}</div></div>`);
+            document.getElementById('groupsDiv').innerHTML = h || '<p style="color:#999;text-align:center;">No groups</p>';
         }
-        function showAddGroupModal() { document.getElementById('groupName').value = ''; document.getElementById('groupModal').classList.add('active'); }
+        function addGroup() { document.getElementById('groupName').value = ''; document.getElementById('groupModal').classList.add('active'); }
         function saveGroup() {
-            const n = document.getElementById('groupName').value;
-            if(!n) return alert('Enter name!');
-            let g = getGroups();
-            g.push({id: Date.now(), name: n, msgs: []});
-            saveGroups(g);
-            closeModal();
+            let n = document.getElementById('groupName').value;
+            if(!n) return alert('Enter name');
+            let g = JSON.parse(localStorage.getItem('groups') || '[]');
+            g.push({id: Date.now(), n, m: []});
+            localStorage.setItem('groups', JSON.stringify(g));
+            closeAllModals();
             loadGroups();
         }
         function openGroup(id, n) {
-            cGroup = {id, name: n};
-            document.getElementById('chatPage').classList.remove('active');
-            document.getElementById('chatDetailPage').classList.add('active');
-            loadMessages();
+            group = {id, n};
+            document.getElementById('chat').classList.remove('active');
+            document.getElementById('chatDetail').classList.add('active');
+            loadMsgs();
         }
-        function sendMessage() {
-            const t = document.getElementById('messageInput').value;
+        function sendMsg() {
+            let t = document.getElementById('msgText').value;
             if(!t) return;
-            const g = getGroups().find(x => x.id == cGroup.id);
-            if(!g.msgs) g.msgs = [];
-            g.msgs.push({t, time: new Date().toLocaleString()});
-            saveGroups(getGroups());
-            document.getElementById('messageInput').value = '';
-            loadMessages();
+            let gs = JSON.parse(localStorage.getItem('groups') || '[]');
+            let g = gs.find(x => x.id == group.id);
+            g.m.push({t, ti: new Date().toLocaleString()});
+            localStorage.setItem('groups', JSON.stringify(gs));
+            document.getElementById('msgText').value = '';
+            loadMsgs();
         }
-        function loadMessages() {
-            const g = getGroups().find(x => x.id == cGroup.id);
-            let html = '';
-            if(g && g.msgs) g.msgs.forEach(m => html += `<div style="background:#e8f4f8;padding:10px;border-radius:5px;margin-bottom:8px;"><strong>${m.t}</strong><br><small>${m.time}</small></div>`);
-            document.getElementById('messagesList').innerHTML = html;
+        function loadMsgs() {
+            let g = JSON.parse(localStorage.getItem('groups') || '[]').find(x => x.id == group.id);
+            let h = '';
+            if(g && g.m) g.m.forEach(x => h += `<div style="background:#e8f4f8;padding:10px;border-radius:5px;margin-bottom:8px;"><strong>${x.t}</strong><br><small>${x.ti}</small></div>`);
+            document.getElementById('msgsDiv').innerHTML = h;
         }
 
         // REGISTER
-        function getRegister(pid) { return JSON.parse(localStorage.getItem(`reg_${pid}`) || '[]'); }
-        function saveRegister(pid, r) { localStorage.setItem(`reg_${pid}`, JSON.stringify(r)); }
-        function loadRegisterParties() {
-            let html = '';
-            getParties().forEach(p => html += `<div class="item" onclick="openRegister('${p.id}','${p.name}')"><div class="item-title">📋 ${p.name}</div></div>`);
-            document.getElementById('registerList').innerHTML = html;
+        function loadRegParties() {
+            let p = JSON.parse(localStorage.getItem('parties') || '[]');
+            let h = '';
+            p.forEach(x => h += `<div class="item" onclick="openReg('${x.id}','${x.n}')"><div class="item-title">📋 ${x.n}</div></div>`);
+            document.getElementById('regPartiesDiv').innerHTML = h;
         }
-        function openRegister(id, n) {
-            cRegParty = {id, name: n};
-            document.getElementById('registerPage').classList.remove('active');
-            document.getElementById('registerDetailPage').classList.add('active');
-            document.getElementById('registerTitle').textContent = `📋 ${n}`;
-            showRegisterTable();
+        function openReg(id, n) {
+            regParty = {id, n};
+            document.getElementById('register').classList.remove('active');
+            document.getElementById('registerDetail').classList.add('active');
+            document.getElementById('regTitle').textContent = `📋 ${n}`;
+            drawRegister();
         }
-        function showRegisterTable() {
-            const r = getRegister(cRegParty.id);
-            const df = document.getElementById('regDateFilter').value.toLowerCase();
-            const dsf = document.getElementById('regDispatchFilter').value;
-            let html = '';
-            r.forEach((e, i) => {
-                if((df && !e.d.toLowerCase().includes(df)) || (dsf && e.ds.toString() !== dsf)) return;
-                html += `<tr><td>${e.d}</td><td>${e.ds}</td><td>${e.t}</td><td>${e.r||0}</td><td><button onclick="editReg(${i})" style="background:#3498db;padding:5px 8px;width:auto;margin:0;font-size:11px;">✏️</button></td><td><button onclick="delReg(${i})" style="background:#e74c3c;padding:5px 8px;width:auto;margin:0;font-size:11px;">🗑️</button></td></tr>`;
+        function drawRegister() {
+            let r = JSON.parse(localStorage.getItem(`reg_${regParty.id}`) || '[]');
+            let df = document.getElementById('regDateF').value.toLowerCase();
+            let dsf = document.getElementById('regDispatchF').value;
+            let h = '';
+            r.forEach((x, i) => {
+                if((df && !x.d.toLowerCase().includes(df)) || (dsf && x.ds.toString() !== dsf)) return;
+                h += `<tr><td>${x.d}</td><td>${x.ds}</td><td>${x.t}</td><td>${x.r || 0}</td><td><button onclick="delRegEntry(${i})" style="background:#e74c3c;width:auto;margin:0;padding:5px 8px;font-size:11px;">🗑️</button></td></tr>`;
             });
-            document.getElementById('regTableBody').innerHTML = html || '<tr><td colspan="6" style="text-align:center;color:#999;padding:20px;">No matches</td></tr>';
+            document.getElementById('regBody').innerHTML = h || '<tr><td colspan="6" style="color:#999;text-align:center;padding:20px;">No matches</td></tr>';
         }
-        function showAddRegisterModal() { document.getElementById('regDate').value = ''; document.getElementById('regDispatch').value = ''; document.getElementById('regReturn').value = ''; document.getElementById('registerModal').classList.add('active'); }
-        function saveRegisterEntry() {
-            const d = document.getElementById('regDate').value, ds = parseInt(document.getElementById('regDispatch').value), t = document.getElementById('regType').value, r = parseInt(document.getElementById('regReturn').value)||0;
-            if(!d || !ds) return alert('Fill all!');
-            let reg = getRegister(cRegParty.id);
+        function addRegEntry() { document.getElementById('regDate').value = ''; document.getElementById('regDispatch').value = ''; document.getElementById('regReturn').value = ''; document.getElementById('regModal').classList.add('active'); }
+        function saveRegEntry() {
+            let d = document.getElementById('regDate').value, ds = parseInt(document.getElementById('regDispatch').value), t = document.getElementById('regType').value, r = parseInt(document.getElementById('regReturn').value) || 0;
+            if(!d || !ds) return alert('Fill all');
+            let reg = JSON.parse(localStorage.getItem(`reg_${regParty.id}`) || '[]');
             reg.push({d, ds, t, r});
-            saveRegister(cRegParty.id, reg);
-            closeModal();
-            showRegisterTable();
+            localStorage.setItem(`reg_${regParty.id}`, JSON.stringify(reg));
+            closeAllModals();
+            drawRegister();
         }
-        function editReg(i) {
-            const r = getRegister(cRegParty.id)[i];
-            document.getElementById('regDate').value = r.d;
-            document.getElementById('regDispatch').value = r.ds;
-            document.getElementById('regType').value = r.t;
-            document.getElementById('regReturn').value = r.r;
-            cEditCell = {i, type: 'reg'};
-            document.getElementById('registerModal').classList.add('active');
-        }
-        function delReg(i) {
+        function delRegEntry(i) {
             if(!confirm('Delete?')) return;
-            let r = getRegister(cRegParty.id);
+            let r = JSON.parse(localStorage.getItem(`reg_${regParty.id}`) || '[]');
             r.splice(i, 1);
-            saveRegister(cRegParty.id, r);
-            showRegisterTable();
+            localStorage.setItem(`reg_${regParty.id}`, JSON.stringify(r));
+            drawRegister();
         }
 
         // DAYBOOK
-        function getDaybook(pid) { return JSON.parse(localStorage.getItem(`db_${pid}`) || '[]'); }
-        function saveDaybook(pid, d) { localStorage.setItem(`db_${pid}`, JSON.stringify(d)); }
-        function loadDaybookParties() {
-            let html = '';
-            getParties().forEach(p => html += `<div class="item" onclick="openDaybook('${p.id}','${p.name}')"><div class="item-title">📖 ${p.name}</div></div>`);
-            document.getElementById('daybookList').innerHTML = html;
+        function loadDbParties() {
+            let p = JSON.parse(localStorage.getItem('parties') || '[]');
+            let h = '';
+            p.forEach(x => h += `<div class="item" onclick="openDb('${x.id}','${x.n}')"><div class="item-title">📖 ${x.n}</div></div>`);
+            document.getElementById('dbPartiesDiv').innerHTML = h;
         }
-        function openDaybook(id, n) {
-            cDBParty = {id, name: n};
-            document.getElementById('daybookPage').classList.remove('active');
-            document.getElementById('daybookDetailPage').classList.add('active');
-            document.getElementById('daybookTitle').textContent = `📖 ${n}`;
-            showDaybookTable();
+        function openDb(id, n) {
+            dbParty = {id, n};
+            document.getElementById('daybook').classList.remove('active');
+            document.getElementById('daybookDetail').classList.add('active');
+            document.getElementById('dbTitle').textContent = `📖 ${n}`;
+            drawDaybook();
         }
-        function showDaybookTable() {
-            const d = getDaybook(cDBParty.id);
-            const dtf = document.getElementById('dbDateFilter').value.toLowerCase();
-            const pf = document.getElementById('dbPcsFilter').value;
-            const dnf = document.getElementById('dbDesignFilter').value.toLowerCase();
-            let html = '';
-            d.forEach((e, i) => {
-                if((dtf && !e.dt.toLowerCase().includes(dtf)) || (pf && e.p.toString() !== pf) || (dnf && !e.dn.toLowerCase().includes(dnf))) return;
-                html += `<tr><td>${e.dt}</td><td>${e.p}</td><td>${e.dn}</td><td><button onclick="editDB(${i})" style="background:#3498db;padding:5px 8px;width:auto;margin:0;font-size:11px;">✏️</button></td><td><button onclick="delDB(${i})" style="background:#e74c3c;padding:5px 8px;width:auto;margin:0;font-size:11px;">🗑️</button></td></tr>`;
+        function drawDaybook() {
+            let db = JSON.parse(localStorage.getItem(`db_${dbParty.id}`) || '[]');
+            let dtf = document.getElementById('dbDateF').value.toLowerCase();
+            let pf = document.getElementById('dbPcsF').value;
+            let dnf = document.getElementById('dbDesignF').value.toLowerCase();
+            let h = '';
+            db.forEach((x, i) => {
+                if((dtf && !x.dt.toLowerCase().includes(dtf)) || (pf && x.p.toString() !== pf) || (dnf && !x.dn.toLowerCase().includes(dnf))) return;
+                h += `<tr><td>${x.dt}</td><td>${x.p}</td><td>${x.dn}</td><td><button onclick="delDbEntry(${i})" style="background:#e74c3c;width:auto;margin:0;padding:5px 8px;font-size:11px;">🗑️</button></td></tr>`;
             });
-            document.getElementById('dbTableBody').innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:#999;padding:20px;">No matches</td></tr>';
+            document.getElementById('dbBody').innerHTML = h || '<tr><td colspan="5" style="color:#999;text-align:center;padding:20px;">No matches</td></tr>';
         }
-        function showAddDaybookModal() { document.getElementById('dbDate').value = ''; document.getElementById('dbPcs').value = ''; document.getElementById('dbDesign').value = ''; document.getElementById('daybookModal').classList.add('active'); }
-        function saveDaybookEntry() {
-            const dt = document.getElementById('dbDate').value, p = parseInt(document.getElementById('dbPcs').value), dn = document.getElementById('dbDesign').value;
-            if(!dt || !p || !dn) return alert('Fill all!');
-            let db = getDaybook(cDBParty.id);
+        function addDbEntry() { document.getElementById('dbDate').value = ''; document.getElementById('dbPcs').value = ''; document.getElementById('dbDesign').value = ''; document.getElementById('dbModal').classList.add('active'); }
+        function saveDbEntry() {
+            let dt = document.getElementById('dbDate').value, p = parseInt(document.getElementById('dbPcs').value), dn = document.getElementById('dbDesign').value;
+            if(!dt || !p || !dn) return alert('Fill all');
+            let db = JSON.parse(localStorage.getItem(`db_${dbParty.id}`) || '[]');
             db.push({dt, p, dn});
-            saveDaybook(cDBParty.id, db);
-            closeModal();
-            showDaybookTable();
+            localStorage.setItem(`db_${dbParty.id}`, JSON.stringify(db));
+            closeAllModals();
+            drawDaybook();
         }
-        function editDB(i) {
-            const d = getDaybook(cDBParty.id)[i];
-            document.getElementById('dbDate').value = d.dt;
-            document.getElementById('dbPcs').value = d.p;
-            document.getElementById('dbDesign').value = d.dn;
-            cEditCell = {i, type: 'db'};
-            document.getElementById('daybookModal').classList.add('active');
-        }
-        function delDB(i) {
+        function delDbEntry(i) {
             if(!confirm('Delete?')) return;
-            let d = getDaybook(cDBParty.id);
-            d.splice(i, 1);
-            saveDaybook(cDBParty.id, d);
-            showDaybookTable();
+            let db = JSON.parse(localStorage.getItem(`db_${dbParty.id}`) || '[]');
+            db.splice(i, 1);
+            localStorage.setItem(`db_${dbParty.id}`, JSON.stringify(db));
+            drawDaybook();
         }
 
         // REMINDERS
-        function getReminders() { return JSON.parse(localStorage.getItem('reminders') || '[]'); }
-        function saveReminders(r) { localStorage.setItem('reminders', JSON.stringify(r)); }
-        function loadReminderList() {
-            allReminders = getReminders();
-            showReminderList();
-        }
-        function showReminderList() {
-            let html = '';
-            allReminders.forEach((r, i) => {
-                const v = r.v ? '🎤' : '';
-                const st = r.s === 'completed' ? '✅' : '⏳';
-                const pr = r.pr === 'urgent' ? '⭐' : '';
-                html += `<div style="background:white;padding:12px;border-radius:5px;margin-bottom:10px;border-left:4px solid ${r.s==='completed'?'#27ae60':'#e74c3c'};">
-                    <div style="font-weight:bold;margin-bottom:5px;">${pr} ${r.t} ${v}</div>
-                    <div style="font-size:12px;color:#999;margin-bottom:8px;">Date: ${r.d} | ${st} ${r.s}</div>
+        function drawReminders() {
+            let rem = JSON.parse(localStorage.getItem('reminders') || '[]');
+            let sf = document.getElementById('remSearchF').value.toLowerCase();
+            let h = '';
+            rem.forEach((x, i) => {
+                if(remFilter !== 'all' && x.s !== remFilter) return;
+                if(sf && !x.t.toLowerCase().includes(sf)) return;
+                let v = x.v ? '🎤' : '';
+                let st = x.s === 'completed' ? '✅' : '⏳';
+                let pr = x.pr === '⭐ Urgent' ? '⭐' : '';
+                h += `<div style="background:white;padding:12px;border-radius:5px;margin-bottom:10px;border-left:4px solid ${x.s==='completed'?'#27ae60':'#e74c3c'};">
+                    <div style="font-weight:bold;margin-bottom:5px;">${pr} ${x.t} ${v}</div>
+                    <div style="font-size:12px;color:#999;margin-bottom:8px;">Date: ${x.d} | ${st} ${x.s}</div>
                     <div style="display:flex;gap:5px;flex-wrap:wrap;">
-                        ${r.v?`<button onclick="playVoiceTask(${i})" style="padding:5px 8px;background:#3498db;flex:1;margin:0;font-size:11px;">▶️</button>`:''}
-                        ${r.s==='pending'?`<button onclick="editRem(${i})" style="padding:5px 8px;background:#f39c12;flex:1;margin:0;font-size:11px;">✏️</button>`:''}
-                        ${r.s==='pending'?`<button onclick="markDone(${i})" style="padding:5px 8px;background:#27ae60;flex:1;margin:0;font-size:11px;">✓</button>`:''}
+                        ${x.v?`<button onclick="playVoiceTask(${i})" style="padding:5px 8px;background:#3498db;flex:1;margin:0;font-size:11px;">▶️</button>`:''}
+                        ${x.s==='pending'?`<button onclick="markDone(${i})" style="padding:5px 8px;background:#27ae60;flex:1;margin:0;font-size:11px;">✓</button>`:''}
                         <button onclick="delRem(${i})" style="padding:5px 8px;background:#e74c3c;flex:1;margin:0;font-size:11px;">🗑️</button>
                     </div>
                 </div>`;
             });
-            document.getElementById('remindersList').innerHTML = html || '<p style="text-align:center;color:#999;">No reminders</p>';
+            document.getElementById('remDiv').innerHTML = h || '<p style="color:#999;text-align:center;">No reminders</p>';
         }
-        function filterRemStatus(st) {
-            let html = '';
-            allReminders.forEach((r, i) => {
-                if(st !== 'all' && r.s !== st) return;
-                const v = r.v ? '🎤' : '';
-                const icon = r.s === 'completed' ? '✅' : '⏳';
-                const pr = r.pr === 'urgent' ? '⭐' : '';
-                html += `<div style="background:white;padding:12px;border-radius:5px;margin-bottom:10px;border-left:4px solid ${r.s==='completed'?'#27ae60':'#e74c3c'};">
-                    <div style="font-weight:bold;margin-bottom:5px;">${pr} ${r.t} ${v}</div>
-                    <div style="font-size:12px;color:#999;margin-bottom:8px;">Date: ${r.d} | ${icon} ${r.s}</div>
-                    <div style="display:flex;gap:5px;flex-wrap:wrap;">
-                        ${r.v?`<button onclick="playVoiceTask(${i})" style="padding:5px 8px;background:#3498db;flex:1;margin:0;font-size:11px;">▶️</button>`:''}
-                        ${r.s==='pending'?`<button onclick="editRem(${i})" style="padding:5px 8px;background:#f39c12;flex:1;margin:0;font-size:11px;">✏️</button>`:''}
-                        ${r.s==='pending'?`<button onclick="markDone(${i})" style="padding:5px 8px;background:#27ae60;flex:1;margin:0;font-size:11px;">✓</button>`:''}
-                        <button onclick="delRem(${i})" style="padding:5px 8px;background:#e74c3c;flex:1;margin:0;font-size:11px;">🗑️</button>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('remindersList').innerHTML = html || '<p style="text-align:center;color:#999;">No reminders</p>';
-        }
-        function showAddReminderModal() {
-            cEditRemIdx = null;
+        function filterRemAll() { remFilter = 'all'; drawReminders(); }
+        function filterRemPending() { remFilter = 'pending'; drawReminders(); }
+        function filterRemDone() { remFilter = 'completed'; drawReminders(); }
+        function addReminder() {
             document.getElementById('remTitle').textContent = 'Add Reminder';
             document.getElementById('remText').value = '';
             document.getElementById('remDate').value = new Date().getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][new Date().getMonth()];
-            document.getElementById('remPriority').value = 'normal';
+            document.getElementById('remPriority').value = 'Normal';
             voiceData = null;
             updateVoiceUI();
-            document.getElementById('reminderModal').classList.add('active');
-        }
-        function editRem(i) {
-            cEditRemIdx = i;
-            const r = allReminders[i];
-            document.getElementById('remTitle').textContent = 'Edit Reminder';
-            document.getElementById('remText').value = r.t;
-            document.getElementById('remDate').value = r.d;
-            document.getElementById('remPriority').value = r.pr;
-            voiceData = r.v || null;
-            updateVoiceUI();
-            document.getElementById('reminderModal').classList.add('active');
+            document.getElementById('remModal').classList.add('active');
         }
         function saveReminder() {
-            const t = document.getElementById('remText').value, d = document.getElementById('remDate').value, pr = document.getElementById('remPriority').value;
-            if(!t || !d) return alert('Fill all!');
-            let rem = getReminders();
-            const obj = {t, d, pr, v: voiceData};
-            if(cEditRemIdx !== null) {
-                rem[cEditRemIdx] = {...rem[cEditRemIdx], ...obj};
-            } else {
-                obj.s = 'pending';
-                rem.push(obj);
-            }
-            saveReminders(rem);
-            closeModal();
-            loadReminderList();
+            let t = document.getElementById('remText').value, d = document.getElementById('remDate').value, pr = document.getElementById('remPriority').value;
+            if(!t || !d) return alert('Fill all');
+            let rem = JSON.parse(localStorage.getItem('reminders') || '[]');
+            rem.push({t, d, pr, v: voiceData, s: 'pending'});
+            localStorage.setItem('reminders', JSON.stringify(rem));
+            closeAllModals();
+            drawReminders();
         }
         function markDone(i) {
-            let r = getReminders();
-            r[i].s = 'completed';
-            saveReminders(r);
-            loadReminderList();
+            let rem = JSON.parse(localStorage.getItem('reminders') || '[]');
+            rem[i].s = 'completed';
+            localStorage.setItem('reminders', JSON.stringify(rem));
+            drawReminders();
         }
         function delRem(i) {
             if(!confirm('Delete?')) return;
-            let r = getReminders();
-            r.splice(i, 1);
-            saveReminders(r);
-            loadReminderList();
+            let rem = JSON.parse(localStorage.getItem('reminders') || '[]');
+            rem.splice(i, 1);
+            localStorage.setItem('reminders', JSON.stringify(rem));
+            drawReminders();
         }
         function toggleVoice() {
-            if(document.getElementById('voiceStartBtn').textContent.includes('Start')) startVoice();
+            if(document.getElementById('voiceBtn').textContent.includes('Start')) startVoice();
             else stopVoice();
         }
         function startVoice() {
-            navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
-                mediaRec = new MediaRecorder(stream);
-                const ch = [];
+            navigator.mediaDevices.getUserMedia({audio: true}).then(s => {
+                mediaRec = new MediaRecorder(s);
+                let ch = [];
                 mediaRec.ondataavailable = e => ch.push(e.data);
                 mediaRec.onstop = () => {
-                    const bl = new Blob(ch, {type: 'audio/webm'});
-                    const r = new FileReader();
+                    let b = new Blob(ch, {type: 'audio/webm'});
+                    let r = new FileReader();
                     r.onload = () => { voiceData = r.result; updateVoiceUI(); document.getElementById('voiceStatus').textContent = '✅ Recorded!'; };
-                    r.readAsDataURL(bl);
+                    r.readAsDataURL(b);
                 };
                 mediaRec.start();
-                document.getElementById('voiceStartBtn').textContent = '⏹️ Stop';
+                document.getElementById('voiceBtn').textContent = '⏹️ Stop';
                 document.getElementById('voiceStatus').textContent = '🔴 Recording...';
-            }).catch(() => alert('Mic denied!'));
+            }).catch(() => alert('Mic denied'));
         }
         function stopVoice() {
             if(mediaRec) {
                 mediaRec.stop();
                 mediaRec.stream.getTracks().forEach(t => t.stop());
-                document.getElementById('voiceStartBtn').textContent = '🎙️ Start Recording';
+                document.getElementById('voiceBtn').textContent = '🎙️ Start';
             }
         }
         function updateVoiceUI() {
-            if(voiceData) {
-                document.getElementById('voicePlayBtn').style.display = 'block';
-                document.getElementById('voiceClearBtn').style.display = 'block';
-            } else {
-                document.getElementById('voicePlayBtn').style.display = 'none';
-                document.getElementById('voiceClearBtn').style.display = 'none';
-            }
+            document.getElementById('playBtn').style.display = voiceData ? 'block' : 'none';
+            document.getElementById('clearBtn').style.display = voiceData ? 'block' : 'none';
         }
         function playVoice() { if(voiceData) new Audio(voiceData).play(); }
         function clearVoice() { voiceData = null; updateVoiceUI(); document.getElementById('voiceStatus').textContent = ''; }
-        function playVoiceTask(i) { if(allReminders[i].v) new Audio(allReminders[i].v).play(); }
+        function playVoiceTask(i) {
+            let rem = JSON.parse(localStorage.getItem('reminders') || '[]')[i];
+            if(rem.v) new Audio(rem.v).play();
+        }
 
-        window.addEventListener('load', () => { loadParties(); if('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(() => {}); });
+        window.addEventListener('load', () => loadParties());
     </script>
 </body>
 </html>
