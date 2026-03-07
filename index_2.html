@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#34495e">
+    <title>Factory ERP</title>
+    <link rel="manifest" href="./manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { height: 100vh; display: flex; flex-direction: column; }
+        header { background: #2c3e50; color: white; padding: 15px; }
+        header h1 { font-size: 20px; }
+        .content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .item { background: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .item-title { font-weight: bold; margin-bottom: 3px; font-size: 15px; }
+        .item-sub { font-size: 12px; color: #999; }
+        button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px; font-size: 15px; font-weight: bold; }
+        button:hover { background: #2980b9; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; border-top: 1px solid #ddd; padding: 5px 0; }
+        .nav-btn { flex: 1; padding: 12px; background: none; border: none; cursor: pointer; font-size: 24px; }
+        .nav-btn.active { background: #f0f0f0; }
+        table { width: 100%; border-collapse: collapse; background: white; margin: 10px 0; }
+        th, td { padding: 8px; text-align: center; border: 1px solid #ddd; font-size: 12px; }
+        th { background: #34495e; color: white; }
+        .editable { cursor: pointer; background: #fffacd; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 20px; border-radius: 10px; max-width: 90%; max-height: 90vh; overflow-y: auto; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        .form-buttons { display: flex; gap: 10px; margin-top: 15px; }
+        .form-buttons button { flex: 1; margin: 0; }
+        .form-buttons .cancel { background: #95a5a6; }
+        .filter-box { background: white; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
+        .filter-box input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px; margin-bottom: 8px; font-size: 13px; }
+        .filter-buttons { display: flex; gap: 5px; }
+        .filter-buttons button { flex: 1; padding: 8px; font-size: 12px; margin: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 Factory ERP System</h1>
+        </header>
+
+        <div class="content">
+            <!-- HOME PAGE -->
+            <div id="homePage" class="page active">
+                <div style="font-size: 16px; font-weight: bold; margin-bottom: 15px;">🏠 PARTIES</div>
+                <div id="partiesList"></div>
+                <button onclick="showAddPartyModal()">➕ ADD PARTY</button>
+            </div>
+
+            <!-- DESIGNS PAGE -->
+            <div id="designsPage" class="page">
+                <button onclick="goBack()" style="background: #95a5a6; margin-bottom: 10px;">← BACK</button>
+                <div style="font-weight: bold; margin-bottom: 10px;" id="designsTitle"></div>
+                <div id="designsList"></div>
+                <button onclick="showAddDesignModal()">➕ ADD DESIGN</button>
+            </div>
+
+            <!-- SHEET PAGE -->
+            <div id="sheetPage" class="page">
+                <button onclick="goBack()" style="background: #95a5a6; margin-bottom: 10px;">← BACK</button>
+                <div style="background: white; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-size: 12px; font-weight: bold;" id="sheetInfo"></div>
+                
+                <!-- SHEET FILTERS -->
+                <div class="filter-box">
+                    <input type="text" id="sheetFilterTailor" placeholder="🔍 Filter by Tailor Name (e.g., -, Ahmed)" onkeyup="filterSheetDisplay()">
+                    <input type="text" id="sheetFilterSize" placeholder="🔍 Filter by Size (XXS/XS/S/M/L/XL/2XL/3XL)" onkeyup="filterSheetDisplay()">
+                </div>
+                
+                <div id="sheetContainer"></div>
+                <button onclick="showAddDateModal()" style="margin-top: 10px;">📅 ADD NEW DATE</button>
+            </div>
+
+            <!-- CHAT PAGE -->
+            <div id="chatPage" class="page">
+                <div style="font-size: 16px; font-weight: bold; margin-bottom: 15px;">💬 GROUPS</div>
+                <div id="groupsList"></div>
+                <button onclick="showAddGroupModal()">➕ NEW GROUP</button>
+            </div>
+
+            <!-- CHAT DETAIL PAGE -->
+            <div id="chatDetailPage" class="page">
+                <button onclick="goBack()" style="background: #95a5a6; margin-bottom: 10px;">← BACK</button>
+                <div id="messagesList" style="height: 300px; overflow-y: auto; margin-bottom: 15px; background: white; padding: 10px; border-radius: 5px;"></div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="messageInput" placeholder="Type message..." style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    <button onclick="sendMessage()" style="width: auto; margin: 0;">Send</button>
+                </div>
+            </div>
+
+            <!-- REGISTER PAGE -->
+            <div id="registerPage" class="page">
+                <div style="font-size: 16px; font-weight: bold; margin-bottom: 15px;">📋 PARTY REGISTER</div>
+                <div id="registerList"></div>
+            </div>
+
+            <!-- REGISTER DETAIL PAGE -->
+            <div id="registerDetailPage" class="page">
+                <button onclick="goBack()" style="background: #95a5a6; margin-bottom: 10px;">← BACK</button>
+                <div style="font-weight: bold; margin-bottom: 10px;" id="registerPartyTitle"></div>
+                
+                <!-- REGISTER FILTERS -->
+                <div class="filter-box">
+                    <input type="text" id="registerFilterDate" placeholder="🔍 Filter by Date (e.g., 5 Mar)" onkeyup="filterRegisterDisplay()">
+                    <input type="number" id="registerFilterDispatch" placeholder="🔍 Filter by Dispatch" onkeyup="filterRegisterDisplay()">
+                </div>
+                
+                <table>
+                    <tr>
+                        <th>DATE</th>
+                        <th>DISPATCH</th>
+                        <th>TYPE</th>
+                        <th>RETURN</th>
+                        <th>EDIT</th>
+                        <th>DELETE</th>
+                    </tr>
+                    <tbody id="registerTableBody"></tbody>
+                </table>
+                <button onclick="showAddRegisterModal()">➕ ADD ENTRY</button>
+            </div>
+
+            <!-- DAY BOOK PAGE -->
+            <div id="daybookPage" class="page">
+                <div style="font-size: 16px; font-weight: bold; margin-bottom: 15px;">📖 DAY BOOK</div>
+                <div id="daybookList"></div>
+            </div>
+
+            <!-- DAY BOOK DETAIL PAGE -->
+            <div id="daybookDetailPage" class="page">
+                <button onclick="goBack()" style="background: #95a5a6; margin-bottom: 10px;">← BACK</button>
+                <div style="font-weight: bold; margin-bottom: 10px;" id="daybookPartyTitle"></div>
+                
+                <!-- DAY BOOK FILTERS -->
+                <div class="filter-box">
+                    <input type="text" id="daybookFilterDate" placeholder="🔍 Filter by Date (e.g., 5 Mar)" onkeyup="filterDaybookDisplay()">
+                    <input type="number" id="daybookFilterPcs" placeholder="🔍 Filter by PCS" onkeyup="filterDaybookDisplay()">
+                    <input type="text" id="daybookFilterDesign" placeholder="🔍 Filter by Design Name" onkeyup="filterDaybookDisplay()">
+                </div>
+                
+                <table>
+                    <tr>
+                        <th>DATE</th>
+                        <th>PCS</th>
+                        <th>DESIGN</th>
+                        <th>EDIT</th>
+                        <th>DELETE</th>
+                    </tr>
+                    <tbody id="daybookTableBody"></tbody>
+                </table>
+                <button onclick="showAddDaybookEntryModal()">➕ ADD ENTRY</button>
+            </div>
+
+            <!-- REMINDERS PAGE -->
+            <div id="reminderPage" class="page">
+                <div style="font-size: 16px; font-weight: bold; margin-bottom: 15px;">📌 REMINDERS & TASKS</div>
+                
+                <!-- REMINDER SEARCH & FILTER -->
+                <div class="filter-box">
+                    <input type="text" id="reminderSearch" placeholder="🔍 Search reminders..." onkeyup="filterReminders()">
+                    <div class="filter-buttons">
+                        <button onclick="filterRemindersByStatus('all')">All</button>
+                        <button onclick="filterRemindersByStatus('pending')" style="background: #e74c3c;">⏳ Pending</button>
+                        <button onclick="filterRemindersByStatus('completed')" style="background: #27ae60;">✅ Done</button>
+                    </div>
+                </div>
+                
+                <div id="remindersList"></div>
+                <button onclick="showAddReminderModal()">➕ ADD REMINDER</button>
+            </div>
+        </div>
+
+        <!-- BOTTOM NAVIGATION -->
+        <div class="bottom-nav">
+            <button class="nav-btn active" onclick="showPage('home')">🏠</button>
+            <button class="nav-btn" onclick="showPage('chat')">💬</button>
+            <button class="nav-btn" onclick="showPage('register')">📋</button>
+            <button class="nav-btn" onclick="showPage('daybook')">📖</button>
+            <button class="nav-btn" onclick="showPage('reminder')">📌</button>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div id="addPartyModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Party</h2>
+            <div class="form-group">
+                <label>Party Name:</label>
+                <input type="text" id="partyName" placeholder="e.g., Anas Arkas Fabrics">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveParty()">Save</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addDesignModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Design</h2>
+            <div class="form-group">
+                <label>Design Name:</label>
+                <input type="text" id="designName" placeholder="e.g., Paan Black">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveDesign()">Save</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addDateModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Date</h2>
+            <div class="form-group">
+                <label>Date (e.g., 5 Mar):</label>
+                <input type="text" id="dateInput" placeholder="e.g., 5 Mar">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveDate()">Save</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editCellModal" class="modal">
+        <div class="modal-content">
+            <h2 id="editLabel">Edit Cell</h2>
+            <div class="form-group">
+                <input type="text" id="editInput" placeholder="Enter value">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveEditCell()">Save</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addGroupModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Group</h2>
+            <div class="form-group">
+                <label>Group Name:</label>
+                <input type="text" id="groupName" placeholder="e.g., Tailors">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveGroup()">Save</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addRegisterModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Register Entry</h2>
+            <div class="form-group">
+                <label>Date:</label>
+                <input type="text" id="registerDate" placeholder="e.g., 5 Mar">
+            </div>
+            <div class="form-group">
+                <label>Dispatch:</label>
+                <input type="number" id="registerDispatch" placeholder="e.g., 50">
+            </div>
+            <div class="form-group">
+                <label>Type:</label>
+                <select id="registerType">
+                    <option>PCS</option>
+                    <option>SET</option>
+                    <option>CORD SET</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Return:</label>
+                <input type="number" id="registerReturn" placeholder="e.g., 0">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveRegisterEntry()">Save</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addDaybookEntryModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Day Book Entry</h2>
+            <div class="form-group">
+                <label>Date:</label>
+                <input type="text" id="daybookEntryDate" placeholder="e.g., 5 Mar">
+            </div>
+            <div class="form-group">
+                <label>PCS:</label>
+                <input type="number" id="daybookEntryPcs" placeholder="e.g., 50">
+            </div>
+            <div class="form-group">
+                <label>Design:</label>
+                <input type="text" id="daybookEntryDesign" placeholder="e.g., Paan Black">
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveDaybookEntry()">Save</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addReminderModal" class="modal">
+        <div class="modal-content">
+            <h2 id="reminderModalTitle">Add Reminder</h2>
+            <div class="form-group">
+                <label>Task:</label>
+                <textarea id="reminderText" placeholder="e.g., Call client" style="height: 80px;"></textarea>
+            </div>
+            <div class="form-group">
+                <label>🎤 Voice Note:</label>
+                <button type="button" id="voiceRecordBtn" onclick="toggleVoiceRecording()" style="background: #e74c3c;">🎙️ Start Recording</button>
+                <button type="button" id="voicePlayBtn" onclick="playReminderVoice()" style="background: #27ae60; display: none;">▶️ Play</button>
+                <button type="button" id="voiceClearBtn" onclick="clearReminderVoice()" style="background: #95a5a6; display: none;">✕ Clear</button>
+                <div id="voiceStatus" style="font-size: 11px; color: #999; margin-top: 5px;"></div>
+            </div>
+            <div class="form-group">
+                <label>Date:</label>
+                <input type="text" id="reminderDate" placeholder="e.g., 7 Mar">
+            </div>
+            <div class="form-group">
+                <label>Priority:</label>
+                <select id="reminderPriority">
+                    <option value="normal">Normal</option>
+                    <option value="urgent">⭐ Urgent</option>
+                </select>
+            </div>
+            <div class="form-buttons">
+                <button onclick="saveReminder()">Save</button>
+                <button class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // GLOBAL VARIABLES
+        let currentParty = null;
+        let currentDesign = null;
+        let currentRegisterParty = null;
+        let currentDaybookParty = null;
+        let editingCell = null;
+        let currentEditingReminderIdx = null;
+        let mediaRecorder;
+        let reminderVoiceData = null;
+        let sheetData = {};
+        let allReminders = [];
+
+        // PAGE NAVIGATION
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
+            if(page === 'home') {
+                document.getElementById('homePage').classList.add('active');
+                document.querySelector('.nav-btn:nth-child(1)').classList.add('active');
+                loadParties();
+            } else if(page === 'chat') {
+                document.getElementById('chatPage').classList.add('active');
+                document.querySelector('.nav-btn:nth-child(2)').classList.add('active');
+                loadGroups();
+            } else if(page === 'register') {
+                document.getElementById('registerPage').classList.add('active');
+                document.querySelector('.nav-btn:nth-child(3)').classList.add('active');
+                loadRegisterParties();
+            } else if(page === 'daybook') {
+                document.getElementById('daybookPage').classList.add('active');
+                document.querySelector('.nav-btn:nth-child(4)').classList.add('active');
+                loadDaybookParties();
+            } else if(page === 'reminder') {
+                document.getElementById('reminderPage').classList.add('active');
+                document.querySelector('.nav-btn:nth-child(5)').classList.add('active');
+                loadReminders();
+            }
+        }
+
+        function goBack() {
+            if(currentDesign) {
+                currentDesign = null;
+                document.getElementById('sheetPage').classList.remove('active');
+                document.getElementById('designsPage').classList.add('active');
+            } else if(currentRegisterParty) {
+                currentRegisterParty = null;
+                document.getElementById('registerDetailPage').classList.remove('active');
+                document.getElementById('registerPage').classList.add('active');
+                loadRegisterParties();
+            } else if(currentDaybookParty) {
+                currentDaybookParty = null;
+                document.getElementById('daybookDetailPage').classList.remove('active');
+                document.getElementById('daybookPage').classList.add('active');
+                loadDaybookParties();
+            } else if(document.getElementById('chatDetailPage').classList.contains('active')) {
+                document.getElementById('chatDetailPage').classList.remove('active');
+                document.getElementById('chatPage').classList.add('active');
+                loadGroups();
+            } else {
+                document.getElementById('designsPage').classList.remove('active');
+                document.getElementById('homePage').classList.add('active');
+                currentParty = null;
+            }
+        }
+
+        // PARTY FUNCTIONS
+        function getParties() {
+            return JSON.parse(localStorage.getItem('parties') || '[]');
+        }
+
+        function saveParties(parties) {
+            localStorage.setItem('parties', JSON.stringify(parties));
+        }
+
+        function loadParties() {
+            const parties = getParties();
+            let html = '';
+            parties.forEach(party => {
+                html += `<div class="item" onclick="openParty('${party.id}', '${party.name}')">
+                    <div class="item-title">📦 ${party.name}</div>
+                </div>`;
+            });
+            document.getElementById('partiesList').innerHTML = html || '<p style="text-align: center; color: #999;">No parties yet</p>';
+        }
+
+        function showAddPartyModal() {
+            document.getElementById('partyName').value = '';
+            document.getElementById('addPartyModal').classList.add('active');
+        }
+
+        function saveParty() {
+            const name = document.getElementById('partyName').value;
+            if(!name) return alert('Enter party name!');
+            
+            const parties = getParties();
+            parties.push({ id: Date.now(), name });
+            saveParties(parties);
+            closeModal();
+            loadParties();
+            alert('✅ Party added!');
+        }
+
+        function openParty(partyId, partyName) {
+            currentParty = { id: partyId, name: partyName };
+            document.getElementById('homePage').classList.remove('active');
+            document.getElementById('designsPage').classList.add('active');
+            document.getElementById('designsTitle').textContent = `🎨 ${partyName} - Designs`;
+            loadDesigns();
+        }
+
+        // DESIGN FUNCTIONS
+        function getDesigns(partyId) {
+            return JSON.parse(localStorage.getItem(`designs_${partyId}`) || '[]');
+        }
+
+        function saveDesigns(partyId, designs) {
+            localStorage.setItem(`designs_${partyId}`, JSON.stringify(designs));
+        }
+
+        function loadDesigns() {
+            const designs = getDesigns(currentParty.id);
+            let html = '';
+            designs.forEach(design => {
+                html += `<div class="item" onclick="openDesign('${design.id}', '${design.name}')">
+                    <div class="item-title">🎨 ${design.name}</div>
+                </div>`;
+            });
+            document.getElementById('designsList').innerHTML = html || '<p style="text-align: center; color: #999;">No designs yet</p>';
+        }
+
+        function showAddDesignModal() {
+            document.getElementById('designName').value = '';
+            document.getElementById('addDesignModal').classList.add('active');
+        }
+
+        function saveDesign() {
+            const name = document.getElementById('designName').value;
+            if(!name) return alert('Enter design name!');
+            
+            const designs = getDesigns(currentParty.id);
+            designs.push({ id: Date.now(), name });
+            saveDesigns(currentParty.id, designs);
+            closeModal();
+            loadDesigns();
+            alert('✅ Design added!');
+        }
+
+        // SHEET FUNCTIONS
+        function getSheet(partyId, designId) {
+            const key = `sheet_${partyId}_${designId}`;
+            const data = JSON.parse(localStorage.getItem(key) || '{"dates":[],"sizes":["XXS","XS","S","M","L","XL","2XL","3XL"],"data":{}}');
+            return data;
+        }
+
+        function saveSheet(partyId, designId, sheet) {
+            const key = `sheet_${partyId}_${designId}`;
+            localStorage.setItem(key, JSON.stringify(sheet));
+        }
+
+        function openDesign(designId, designName) {
+            currentDesign = { id: designId, name: designName };
+            document.getElementById('designsPage').classList.remove('active');
+            document.getElementById('sheetPage').classList.add('active');
+            document.getElementById('sheetInfo').innerHTML = `<b>${currentParty.name}</b> | 🎨 ${designName}`;
+            displaySheet();
+        }
+
+        function displaySheet() {
+            const sheet = getSheet(currentParty.id, currentDesign.id);
+            let html = '<table><tr><th>TAILOR</th><th>SIZE</th><th>KATE</th><th>SILE</th><th>PEND</th>';
+            
+            sheet.dates.forEach(date => {
+                html += `<th>${date}<br><button onclick="editDate('${date}')" style="background: #3498db; padding: 2px 6px; font-size: 10px; margin-right: 2px; width: auto;">✏️</button><button onclick="deleteDate('${date}')" style="background: #e74c3c; padding: 2px 6px; font-size: 10px; width: auto;">🗑️</button></th>`;
+            });
+            html += '<th>TOTAL</th></tr>';
+
+            sheet.sizes.forEach(size => {
+                const tailor = sheet.data[`${size}_tailor`] || '-';
+                const kate = parseInt(sheet.data[`${size}_kate`]) || 50;
+                const sile = parseInt(sheet.data[`${size}_sile`]) || 0;
+                const pend = kate - sile;
+                
+                html += `<tr>`;
+                html += `<td class="editable" onclick="editCell('${size}', 'tailor')">${tailor}</td>`;
+                html += `<td>${size}</td>`;
+                html += `<td class="editable" onclick="editCell('${size}', 'kate')">${kate}</td>`;
+                html += `<td class="editable" onclick="editCell('${size}', 'sile')">${sile}</td>`;
+                html += `<td>${pend}</td>`;
+                
+                let total = 0;
+                sheet.dates.forEach(date => {
+                    const val = sheet.data[`${size}_${date}`] || '-';
+                    html += `<td class="editable" onclick="editCell('${size}', '${date}')">${val}</td>`;
+                    if(val !== '-') total += parseInt(val);
+                });
+                
+                html += `<td>${total}</td></tr>`;
+            });
+
+            html += `<tr style="background: #c8e6c9; font-weight: bold;"><td>TOTAL</td><td></td><td></td><td></td><td></td>`;
+            sheet.dates.forEach(date => {
+                let dateTotal = 0;
+                sheet.sizes.forEach(size => {
+                    const val = sheet.data[`${size}_${date}`];
+                    if(val && val !== '-') dateTotal += parseInt(val);
+                });
+                html += `<td>${dateTotal}</td>`;
+            });
+            html += '<td></td></tr></table>';
+
+            document.getElementById('sheetContainer').innerHTML = html;
+        }
+
+        function filterSheetDisplay() {
+            const tailor = document.getElementById('sheetFilterTailor').value.toLowerCase();
+            const size = document.getElementById('sheetFilterSize').value.toUpperCase();
+            const sheet = getSheet(currentParty.id, currentDesign.id);
+            
+            let html = '<table><tr><th>TAILOR</th><th>SIZE</th><th>KATE</th><th>SILE</th><th>PEND</th>';
+            
+            sheet.dates.forEach(date => {
+                html += `<th>${date}</th>`;
+            });
+            html += '<th>TOTAL</th></tr>';
+
+            let hasRows = false;
+            sheet.sizes.forEach(sz => {
+                if(size && !sz.includes(size)) return;
+                
+                const tailorVal = sheet.data[`${sz}_tailor`] || '-';
+                if(tailor && !tailorVal.toLowerCase().includes(tailor)) return;
+                
+                hasRows = true;
+                const kate = parseInt(sheet.data[`${sz}_kate`]) || 50;
+                const sile = parseInt(sheet.data[`${sz}_sile`]) || 0;
+                const pend = kate - sile;
+                
+                html += `<tr>`;
+                html += `<td class="editable" onclick="editCell('${sz}', 'tailor')">${tailorVal}</td>`;
+                html += `<td>${sz}</td>`;
+                html += `<td class="editable" onclick="editCell('${sz}', 'kate')">${kate}</td>`;
+                html += `<td class="editable" onclick="editCell('${sz}', 'sile')">${sile}</td>`;
+                html += `<td>${pend}</td>`;
+                
+                let total = 0;
+                sheet.dates.forEach(date => {
+                    const val = sheet.data[`${sz}_${date}`] || '-';
+                    html += `<td class="editable" onclick="editCell('${sz}', '${date}')">${val}</td>`;
+                    if(val !== '-') total += parseInt(val);
+                });
+                
+                html += `<td>${total}</td></tr>`;
+            });
+
+            if(!hasRows) html += `<tr><td colspan="100%" style="text-align: center; padding: 20px; color: #999;">No matching records</td></tr>`;
+
+            html += '</table>';
+            document.getElementById('sheetContainer').innerHTML = html;
+        }
+
+        function editCell(size, field) {
+            editingCell = { size, field };
+            document.getElementById('editLabel').textContent = `${size} - ${field.toUpperCase()}`;
+            document.getElementById('editInput').value = '';
+            document.getElementById('editCellModal').classList.add('active');
+        }
+
+        function saveEditCell() {
+            const value = document.getElementById('editInput').value || '-';
+            const sheet = getSheet(currentParty.id, currentDesign.id);
+            const key = `${editingCell.size}_${editingCell.field}`;
+            sheet.data[key] = value;
+            saveSheet(currentParty.id, currentDesign.id, sheet);
+            closeModal();
+            displaySheet();
+            alert('✅ Updated!');
+        }
+
+        function showAddDateModal() {
+            document.getElementById('dateInput').value = '';
+            document.getElementById('addDateModal').classList.add('active');
+        }
+
+        function saveDate() {
+            const date = document.getElementById('dateInput').value;
+            if(!date) return alert('Enter date!');
+            
+            const sheet = getSheet(currentParty.id, currentDesign.id);
+            if(!sheet.dates.includes(date)) {
+                sheet.dates.push(date);
+                saveSheet(currentParty.id, currentDesign.id, sheet);
+            }
+            closeModal();
+            displaySheet();
+            alert('✅ Date added!');
+        }
+
+        function deleteDate(date) {
+            if(!confirm('Delete this date?')) return;
+            const sheet = getSheet(currentParty.id, currentDesign.id);
+            sheet.dates = sheet.dates.filter(d => d !== date);
+            saveSheet(currentParty.id, currentDesign.id, sheet);
+            displaySheet();
+            alert('✅ Date deleted!');
+        }
+
+        function editDate(date) {
+            document.getElementById('dateInput').value = date;
+            editingCell = { type: 'date', oldDate: date };
+            document.getElementById('addDateModal').classList.add('active');
+        }
+
+        // CHAT FUNCTIONS
+        function getGroups() {
+            return JSON.parse(localStorage.getItem('groups') || '[]');
+        }
+
+        function saveGroups(groups) {
+            localStorage.setItem('groups', JSON.stringify(groups));
+        }
+
+        function loadGroups() {
+            const groups = getGroups();
+            let html = '';
+            groups.forEach(group => {
+                html += `<div class="item" onclick="openGroup('${group.id}', '${group.name}')">
+                    <div class="item-title">💬 ${group.name}</div>
+                </div>`;
+            });
+            document.getElementById('groupsList').innerHTML = html || '<p style="text-align: center; color: #999;">No groups yet</p>';
+        }
+
+        function showAddGroupModal() {
+            document.getElementById('groupName').value = '';
+            document.getElementById('addGroupModal').classList.add('active');
+        }
+
+        function saveGroup() {
+            const name = document.getElementById('groupName').value;
+            if(!name) return alert('Enter group name!');
+            
+            const groups = getGroups();
+            groups.push({ id: Date.now(), name, messages: [] });
+            saveGroups(groups);
+            closeModal();
+            loadGroups();
+            alert('✅ Group added!');
+        }
+
+        function openGroup(groupId, groupName) {
+            currentParty = { id: groupId, name: groupName };
+            document.getElementById('chatPage').classList.remove('active');
+            document.getElementById('chatDetailPage').classList.add('active');
+        }
+
+        function sendMessage() {
+            const text = document.getElementById('messageInput').value;
+            if(!text) return;
+            
+            const groups = getGroups();
+            const group = groups.find(g => g.id == currentParty.id);
+            if(group) {
+                if(!group.messages) group.messages = [];
+                group.messages.push({ text, time: new Date().toLocaleString() });
+                saveGroups(groups);
+                document.getElementById('messageInput').value = '';
+                loadMessages();
+            }
+        }
+
+        function loadMessages() {
+            const groups = getGroups();
+            const group = groups.find(g => g.id == currentParty.id);
+            let html = '';
+            if(group && group.messages) {
+                group.messages.forEach(msg => {
+                    html += `<div style="background: #e8f4f8; padding: 10px; border-radius: 5px; margin-bottom: 8px;">
+                        <strong>Message:</strong> ${msg.text}<br>
+                        <small style="color: #999;">${msg.time}</small>
+                    </div>`;
+                });
+            }
+            document.getElementById('messagesList').innerHTML = html;
+        }
+
+        // REGISTER FUNCTIONS
+        function getRegister(partyId) {
+            return JSON.parse(localStorage.getItem(`register_${partyId}`) || '[]');
+        }
+
+        function saveRegister(partyId, register) {
+            localStorage.setItem(`register_${partyId}`, JSON.stringify(register));
+        }
+
+        function loadRegisterParties() {
+            const parties = getParties();
+            let html = '';
+            parties.forEach(party => {
+                html += `<div class="item" onclick="openRegister('${party.id}', '${party.name}')">
+                    <div class="item-title">📋 ${party.name}</div>
+                </div>`;
+            });
+            document.getElementById('registerList').innerHTML = html;
+        }
+
+        function openRegister(partyId, partyName) {
+            currentRegisterParty = { id: partyId, name: partyName };
+            document.getElementById('registerPage').classList.remove('active');
+            document.getElementById('registerDetailPage').classList.add('active');
+            document.getElementById('registerPartyTitle').textContent = `📋 ${partyName}`;
+            loadRegisterEntries();
+        }
+
+        function loadRegisterEntries() {
+            const entries = getRegister(currentRegisterParty.id);
+            let html = '';
+            entries.forEach((entry, idx) => {
+                html += `<tr>
+                    <td>${entry.date}</td>
+                    <td>${entry.dispatch}</td>
+                    <td>${entry.type}</td>
+                    <td>${entry.return || 0}</td>
+                    <td><button onclick="editRegisterEntry(${idx})" style="background: #3498db; padding: 5px 10px; width: auto; font-size: 11px;">✏️</button></td>
+                    <td><button onclick="deleteRegisterEntry(${idx})" style="background: #e74c3c; padding: 5px 10px; width: auto; font-size: 11px;">🗑️</button></td>
+                </tr>`;
+            });
+            document.getElementById('registerTableBody').innerHTML = html;
+        }
+
+        function filterRegisterDisplay() {
+            const entries = getRegister(currentRegisterParty.id);
+            const dateFilter = document.getElementById('registerFilterDate').value.toLowerCase();
+            const dispatchFilter = document.getElementById('registerFilterDispatch').value;
+            
+            let html = '';
+            entries.forEach((entry, idx) => {
+                if((dateFilter && !entry.date.toLowerCase().includes(dateFilter)) || 
+                   (dispatchFilter && entry.dispatch.toString() !== dispatchFilter)) return;
+                
+                html += `<tr>
+                    <td>${entry.date}</td>
+                    <td>${entry.dispatch}</td>
+                    <td>${entry.type}</td>
+                    <td>${entry.return || 0}</td>
+                    <td><button onclick="editRegisterEntry(${idx})" style="background: #3498db; padding: 5px 10px; width: auto; font-size: 11px;">✏️</button></td>
+                    <td><button onclick="deleteRegisterEntry(${idx})" style="background: #e74c3c; padding: 5px 10px; width: auto; font-size: 11px;">🗑️</button></td>
+                </tr>`;
+            });
+            document.getElementById('registerTableBody').innerHTML = html || '<tr><td colspan="6" style="text-align: center; color: #999;">No matching records</td></tr>';
+        }
+
+        function showAddRegisterModal() {
+            document.getElementById('registerDate').value = '';
+            document.getElementById('registerDispatch').value = '';
+            document.getElementById('registerType').value = 'PCS';
+            document.getElementById('registerReturn').value = '';
+            document.getElementById('addRegisterModal').classList.add('active');
+        }
+
+        function saveRegisterEntry() {
+            const date = document.getElementById('registerDate').value;
+            const dispatch = parseInt(document.getElementById('registerDispatch').value);
+            const type = document.getElementById('registerType').value;
+            const returnVal = parseInt(document.getElementById('registerReturn').value) || 0;
+            
+            if(!date || !dispatch) return alert('Fill all fields!');
+            
+            const entries = getRegister(currentRegisterParty.id);
+            entries.push({ date, dispatch, type, return: returnVal });
+            saveRegister(currentRegisterParty.id, entries);
+            closeModal();
+            loadRegisterEntries();
+            alert('✅ Entry added!');
+        }
+
+        function editRegisterEntry(idx) {
+            const entries = getRegister(currentRegisterParty.id);
+            const entry = entries[idx];
+            document.getElementById('registerDate').value = entry.date;
+            document.getElementById('registerDispatch').value = entry.dispatch;
+            document.getElementById('registerType').value = entry.type;
+            document.getElementById('registerReturn').value = entry.return || 0;
+            editingCell = { type: 'register', index: idx };
+            document.getElementById('addRegisterModal').classList.add('active');
+        }
+
+        function deleteRegisterEntry(idx) {
+            if(!confirm('Delete this entry?')) return;
+            const entries = getRegister(currentRegisterParty.id);
+            entries.splice(idx, 1);
+            saveRegister(currentRegisterParty.id, entries);
+            loadRegisterEntries();
+            alert('✅ Entry deleted!');
+        }
+
+        // DAY BOOK FUNCTIONS
+        function getDaybook(partyId) {
+            return JSON.parse(localStorage.getItem(`daybook_${partyId}`) || '[]');
+        }
+
+        function saveDaybook(partyId, daybook) {
+            localStorage.setItem(`daybook_${partyId}`, JSON.stringify(daybook));
+        }
+
+        function loadDaybookParties() {
+            const parties = getParties();
+            let html = '';
+            parties.forEach(party => {
+                html += `<div class="item" onclick="openDaybook('${party.id}', '${party.name}')">
+                    <div class="item-title">📖 ${party.name}</div>
+                </div>`;
+            });
+            document.getElementById('daybookList').innerHTML = html;
+        }
+
+        function openDaybook(partyId, partyName) {
+            currentDaybookParty = { id: partyId, name: partyName };
+            document.getElementById('daybookPage').classList.remove('active');
+            document.getElementById('daybookDetailPage').classList.add('active');
+            document.getElementById('daybookPartyTitle').textContent = `📖 ${partyName}`;
+            loadDaybookEntries();
+        }
+
+        function loadDaybookEntries() {
+            const entries = getDaybook(currentDaybookParty.id);
+            let html = '';
+            entries.forEach((entry, idx) => {
+                html += `<tr>
+                    <td>${entry.date}</td>
+                    <td>${entry.pcs}</td>
+                    <td>${entry.design}</td>
+                    <td><button onclick="editDaybookEntry(${idx})" style="background: #3498db; padding: 5px 10px; width: auto; font-size: 11px;">✏️</button></td>
+                    <td><button onclick="deleteDaybookEntry(${idx})" style="background: #e74c3c; padding: 5px 10px; width: auto; font-size: 11px;">🗑️</button></td>
+                </tr>`;
+            });
+            document.getElementById('daybookTableBody').innerHTML = html;
+        }
+
+        function filterDaybookDisplay() {
+            const entries = getDaybook(currentDaybookParty.id);
+            const dateFilter = document.getElementById('daybookFilterDate').value.toLowerCase();
+            const pcsFilter = document.getElementById('daybookFilterPcs').value;
+            const designFilter = document.getElementById('daybookFilterDesign').value.toLowerCase();
+            
+            let html = '';
+            entries.forEach((entry, idx) => {
+                if((dateFilter && !entry.date.toLowerCase().includes(dateFilter)) ||
+                   (pcsFilter && entry.pcs.toString() !== pcsFilter) ||
+                   (designFilter && !entry.design.toLowerCase().includes(designFilter))) return;
+                
+                html += `<tr>
+                    <td>${entry.date}</td>
+                    <td>${entry.pcs}</td>
+                    <td>${entry.design}</td>
+                    <td><button onclick="editDaybookEntry(${idx})" style="background: #3498db; padding: 5px 10px; width: auto; font-size: 11px;">✏️</button></td>
+                    <td><button onclick="deleteDaybookEntry(${idx})" style="background: #e74c3c; padding: 5px 10px; width: auto; font-size: 11px;">🗑️</button></td>
+                </tr>`;
+            });
+            document.getElementById('daybookTableBody').innerHTML = html || '<tr><td colspan="5" style="text-align: center; color: #999;">No matching records</td></tr>';
+        }
+
+        function showAddDaybookEntryModal() {
+            document.getElementById('daybookEntryDate').value = '';
+            document.getElementById('daybookEntryPcs').value = '';
+            document.getElementById('daybookEntryDesign').value = '';
+            document.getElementById('addDaybookEntryModal').classList.add('active');
+        }
+
+        function saveDaybookEntry() {
+            const date = document.getElementById('daybookEntryDate').value;
+            const pcs = parseInt(document.getElementById('daybookEntryPcs').value);
+            const design = document.getElementById('daybookEntryDesign').value;
+            
+            if(!date || !pcs || !design) return alert('Fill all fields!');
+            
+            const entries = getDaybook(currentDaybookParty.id);
+            entries.push({ date, pcs, design });
+            saveDaybook(currentDaybookParty.id, entries);
+            closeModal();
+            loadDaybookEntries();
+            alert('✅ Entry added!');
+        }
+
+        function editDaybookEntry(idx) {
+            const entries = getDaybook(currentDaybookParty.id);
+            const entry = entries[idx];
+            document.getElementById('daybookEntryDate').value = entry.date;
+            document.getElementById('daybookEntryPcs').value = entry.pcs;
+            document.getElementById('daybookEntryDesign').value = entry.design;
+            editingCell = { type: 'daybook', index: idx };
+            document.getElementById('addDaybookEntryModal').classList.add('active');
+        }
+
+        function deleteDaybookEntry(idx) {
+            if(!confirm('Delete this entry?')) return;
+            const entries = getDaybook(currentDaybookParty.id);
+            entries.splice(idx, 1);
+            saveDaybook(currentDaybookParty.id, entries);
+            loadDaybookEntries();
+            alert('✅ Entry deleted!');
+        }
+
+        // REMINDER FUNCTIONS
+        function getReminders() {
+            return JSON.parse(localStorage.getItem('reminders') || '[]');
+        }
+
+        function saveReminders(reminders) {
+            localStorage.setItem('reminders', JSON.stringify(reminders));
+        }
+
+        function loadReminders() {
+            allReminders = getReminders();
+            let html = '';
+            allReminders.forEach((reminder, idx) => {
+                const hasVoice = reminder.voice ? '🎤' : '';
+                const icon = reminder.status === 'completed' ? '✅' : '⏳';
+                const priority = reminder.priority === 'urgent' ? '⭐' : '';
+                html += `<div style="background: white; padding: 12px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid ${reminder.status === 'completed' ? '#27ae60' : '#e74c3c'};">
+                    <div style="font-weight: bold; margin-bottom: 5px;">${priority} ${reminder.text} ${hasVoice}</div>
+                    <div style="font-size: 12px; color: #999; margin-bottom: 8px;">Date: ${reminder.date} | ${icon} ${reminder.status}</div>
+                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                        ${reminder.voice ? `<button onclick="playTaskVoice(${idx})" style="padding: 5px 8px; background: #3498db; flex: 1; margin: 0; font-size: 11px;">▶️ Voice</button>` : ''}
+                        ${reminder.status === 'pending' ? `<button onclick="editReminder(${idx})" style="padding: 5px 8px; background: #f39c12; flex: 1; margin: 0; font-size: 11px;">✏️ Edit</button>` : ''}
+                        ${reminder.status === 'pending' ? `<button onclick="markDone(${idx})" style="padding: 5px 8px; background: #27ae60; flex: 1; margin: 0; font-size: 11px;">✓ Done</button>` : ''}
+                        <button onclick="deleteReminder(${idx})" style="padding: 5px 8px; background: #e74c3c; flex: 1; margin: 0; font-size: 11px;">🗑️</button>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('remindersList').innerHTML = html || '<p style="text-align: center; color: #999;">No reminders yet</p>';
+        }
+
+        function filterReminders() {
+            const search = document.getElementById('reminderSearch').value.toLowerCase();
+            let html = '';
+            allReminders.forEach((reminder, idx) => {
+                if(!reminder.text.toLowerCase().includes(search)) return;
+                
+                const hasVoice = reminder.voice ? '🎤' : '';
+                const icon = reminder.status === 'completed' ? '✅' : '⏳';
+                const priority = reminder.priority === 'urgent' ? '⭐' : '';
+                html += `<div style="background: white; padding: 12px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid ${reminder.status === 'completed' ? '#27ae60' : '#e74c3c'};">
+                    <div style="font-weight: bold; margin-bottom: 5px;">${priority} ${reminder.text} ${hasVoice}</div>
+                    <div style="font-size: 12px; color: #999; margin-bottom: 8px;">Date: ${reminder.date} | ${icon} ${reminder.status}</div>
+                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                        ${reminder.voice ? `<button onclick="playTaskVoice(${idx})" style="padding: 5px 8px; background: #3498db; flex: 1; margin: 0; font-size: 11px;">▶️ Voice</button>` : ''}
+                        ${reminder.status === 'pending' ? `<button onclick="editReminder(${idx})" style="padding: 5px 8px; background: #f39c12; flex: 1; margin: 0; font-size: 11px;">✏️ Edit</button>` : ''}
+                        ${reminder.status === 'pending' ? `<button onclick="markDone(${idx})" style="padding: 5px 8px; background: #27ae60; flex: 1; margin: 0; font-size: 11px;">✓ Done</button>` : ''}
+                        <button onclick="deleteReminder(${idx})" style="padding: 5px 8px; background: #e74c3c; flex: 1; margin: 0; font-size: 11px;">🗑️</button>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('remindersList').innerHTML = html || '<p style="text-align: center; color: #999;">No matching reminders</p>';
+        }
+
+        function filterRemindersByStatus(status) {
+            let html = '';
+            allReminders.forEach((reminder, idx) => {
+                if(status !== 'all' && reminder.status !== status) return;
+                
+                const hasVoice = reminder.voice ? '🎤' : '';
+                const icon = reminder.status === 'completed' ? '✅' : '⏳';
+                const priority = reminder.priority === 'urgent' ? '⭐' : '';
+                html += `<div style="background: white; padding: 12px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid ${reminder.status === 'completed' ? '#27ae60' : '#e74c3c'};">
+                    <div style="font-weight: bold; margin-bottom: 5px;">${priority} ${reminder.text} ${hasVoice}</div>
+                    <div style="font-size: 12px; color: #999; margin-bottom: 8px;">Date: ${reminder.date} | ${icon} ${reminder.status}</div>
+                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                        ${reminder.voice ? `<button onclick="playTaskVoice(${idx})" style="padding: 5px 8px; background: #3498db; flex: 1; margin: 0; font-size: 11px;">▶️ Voice</button>` : ''}
+                        ${reminder.status === 'pending' ? `<button onclick="editReminder(${idx})" style="padding: 5px 8px; background: #f39c12; flex: 1; margin: 0; font-size: 11px;">✏️ Edit</button>` : ''}
+                        ${reminder.status === 'pending' ? `<button onclick="markDone(${idx})" style="padding: 5px 8px; background: #27ae60; flex: 1; margin: 0; font-size: 11px;">✓ Done</button>` : ''}
+                        <button onclick="deleteReminder(${idx})" style="padding: 5px 8px; background: #e74c3c; flex: 1; margin: 0; font-size: 11px;">🗑️</button>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('remindersList').innerHTML = html || '<p style="text-align: center; color: #999;">No reminders</p>';
+        }
+
+        function showAddReminderModal() {
+            currentEditingReminderIdx = null;
+            document.getElementById('reminderModalTitle').textContent = 'Add Reminder';
+            document.getElementById('reminderText').value = '';
+            document.getElementById('reminderDate').value = new Date().getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][new Date().getMonth()];
+            document.getElementById('reminderPriority').value = 'normal';
+            reminderVoiceData = null;
+            updateVoiceUI();
+            document.getElementById('addReminderModal').classList.add('active');
+        }
+
+        function editReminder(idx) {
+            currentEditingReminderIdx = idx;
+            const reminder = allReminders[idx];
+            document.getElementById('reminderModalTitle').textContent = 'Edit Reminder';
+            document.getElementById('reminderText').value = reminder.text;
+            document.getElementById('reminderDate').value = reminder.date;
+            document.getElementById('reminderPriority').value = reminder.priority;
+            reminderVoiceData = reminder.voice || null;
+            updateVoiceUI();
+            document.getElementById('addReminderModal').classList.add('active');
+        }
+
+        function saveReminder() {
+            const text = document.getElementById('reminderText').value;
+            const date = document.getElementById('reminderDate').value;
+            const priority = document.getElementById('reminderPriority').value;
+            
+            if(!text || !date) return alert('Fill all fields!');
+            
+            const reminders = getReminders();
+            const obj = { text, date, priority, voice: reminderVoiceData };
+            
+            if(currentEditingReminderIdx !== null) {
+                reminders[currentEditingReminderIdx] = { ...reminders[currentEditingReminderIdx], ...obj };
+            } else {
+                obj.status = 'pending';
+                reminders.push(obj);
+            }
+            
+            saveReminders(reminders);
+            closeModal();
+            loadReminders();
+            alert('✅ Reminder saved!');
+        }
+
+        function markDone(idx) {
+            const reminders = getReminders();
+            reminders[idx].status = 'completed';
+            saveReminders(reminders);
+            loadReminders();
+        }
+
+        function deleteReminder(idx) {
+            if(!confirm('Delete this reminder?')) return;
+            const reminders = getReminders();
+            reminders.splice(idx, 1);
+            saveReminders(reminders);
+            loadReminders();
+            alert('✅ Deleted!');
+        }
+
+        function toggleVoiceRecording() {
+            if(document.getElementById('voiceRecordBtn').textContent.includes('Start')) {
+                startVoiceRecording();
+            } else {
+                stopVoiceRecording();
+            }
+        }
+
+        function startVoiceRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    const chunks = [];
+                    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(chunks, { type: 'audio/webm' });
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            reminderVoiceData = reader.result;
+                            updateVoiceUI();
+                            document.getElementById('voiceStatus').textContent = '✅ Voice recorded!';
+                        };
+                        reader.readAsDataURL(blob);
+                    };
+                    mediaRecorder.start();
+                    document.getElementById('voiceRecordBtn').textContent = '⏹️ Stop Recording';
+                    document.getElementById('voiceStatus').textContent = '🔴 Recording...';
+                })
+                .catch(() => alert('Microphone access denied!'));
+        }
+
+        function stopVoiceRecording() {
+            if(mediaRecorder) {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(t => t.stop());
+                document.getElementById('voiceRecordBtn').textContent = '🎙️ Start Recording';
+            }
+        }
+
+        function updateVoiceUI() {
+            if(reminderVoiceData) {
+                document.getElementById('voicePlayBtn').style.display = 'block';
+                document.getElementById('voiceClearBtn').style.display = 'block';
+            } else {
+                document.getElementById('voicePlayBtn').style.display = 'none';
+                document.getElementById('voiceClearBtn').style.display = 'none';
+            }
+        }
+
+        function playReminderVoice() {
+            if(reminderVoiceData) new Audio(reminderVoiceData).play();
+        }
+
+        function clearReminderVoice() {
+            reminderVoiceData = null;
+            updateVoiceUI();
+            document.getElementById('voiceStatus').textContent = '';
+        }
+
+        function playTaskVoice(idx) {
+            if(allReminders[idx].voice) new Audio(allReminders[idx].voice).play();
+        }
+
+        // MODAL
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+        }
+
+        // INIT
+        window.addEventListener('load', () => {
+            loadParties();
+            if('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+            }
+        });
+    </script>
+</body>
+</html>
